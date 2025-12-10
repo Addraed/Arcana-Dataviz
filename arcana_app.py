@@ -22,6 +22,555 @@ st.set_page_config(page_title="A.R.C.A.N.A. Constructor", layout="wide")
 # Load DB
 ORDINANCES = load_ordinances()
 
+# ---------------------------------------------------------
+# ESTILOS GLOBALES PARA TARJETAS DE NUMEN (HOVER REACTIVO)
+# ---------------------------------------------------------
+
+# ---------------------------------------------------------
+# ESTILOS GLOBALES
+# ---------------------------------------------------------
+
+def inject_global_css():
+    css = """
+    <style>
+    .numen-card {
+        position: relative;
+        padding: 0.5rem;
+        border-radius: 10px;
+        border: 1px solid #444;
+        background: rgba(10, 10, 10, 0.4);
+        transition:
+            transform 0.18s ease-out,
+            box-shadow 0.18s ease-out,
+            filter 0.18s ease-out,
+            border-color 0.18s ease-out;
+        cursor: pointer;
+        overflow: hidden;
+        min-height: 5rem;
+    }
+
+    .numen-card-name {
+        font-weight: 600;
+        font-size: 0.95rem;
+        margin-bottom: 0.1rem;
+        display: block;
+    }
+
+    .numen-card-tags {
+        font-size: 0.75rem;
+        opacity: 0.8;
+        display: block;
+        margin-bottom: 0.2rem;
+    }
+
+    .numen-card-desc {
+        font-size: 0.75rem;
+        opacity: 0.9;
+        display: block;
+    }
+
+    /* CARTAS ANIMADAS DE ORDENANZA (details + summary) */
+    details.ordinance-card {
+        margin-bottom: 0.9rem;
+        border-radius: 12px;
+        border: 2px solid #444;
+        background: rgba(5, 5, 5, 0.6);
+        position: relative;
+        overflow: hidden;
+        transition:
+            transform 0.18s ease-out,
+            box-shadow 0.18s ease-out,
+            border-color 0.18s ease-out;
+    }
+
+    details.ordinance-card summary {
+        list-style: none;
+        cursor: pointer;
+        padding: 0.7rem 0.9rem;
+        outline: none;
+    }
+
+    details.ordinance-card summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .ordinance-header-title {
+        font-weight: 600;
+        font-size: 0.95rem;
+        margin-bottom: 0.1rem;
+    }
+
+    .ordinance-header-sub {
+        font-size: 0.8rem;
+        opacity: 0.85;
+    }
+
+    .ordinance-header-tag {
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin-top: 0.3rem;
+        display: inline-block;
+        padding: 0.1rem 0.4rem;
+        border-radius: 999px;
+        background: rgba(0, 0, 0, 0.4);
+    }
+
+    .ordinance-details {
+        padding: 0 0.9rem 0.7rem 0.9rem;
+        border-top: 1px solid rgba(255,255,255,0.06);
+        font-size: 0.85rem;
+    }
+
+    /* Texturas animadas / vibración (inspirado en efectos CSS hover) */
+    details.ordinance-card::before {
+        content: "";
+        position: absolute;
+        inset: -40%;
+        background: conic-gradient(
+            from 0deg,
+            rgba(255,255,255,0.0),
+            rgba(255,255,255,0.25),
+            rgba(255,255,255,0.0),
+            rgba(255,255,255,0.25),
+            rgba(255,255,255,0.0)
+        );
+        opacity: 0.12;
+        mix-blend-mode: screen;
+        animation: spin-glow 18s linear infinite;
+        pointer-events: none;
+    }
+
+    details.ordinance-card:hover {
+        transform: translateY(-3px) scale(1.01);
+        box-shadow: 0 0 20px rgba(0,0,0,0.8);
+        animation: tilt-shake 0.35s ease-in-out;
+    }
+
+    @keyframes spin-glow {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    @keyframes tilt-shake {
+        0% { transform: translateY(-3px) rotate(0deg); }
+        25% { transform: translateY(-3px) rotate(-0.7deg); }
+        50% { transform: translateY(-3px) rotate(0.4deg); }
+        75% { transform: translateY(-3px) rotate(-0.4deg); }
+        100% { transform: translateY(-3px) rotate(0deg); }
+    }
+
+    /* Bordes según tipo de ordenanza */
+    .ordinance-border-damage {
+        border-color: #ff4b4b;
+    }
+    .ordinance-border-heal {
+        border-color: #4caf50;
+    }
+    .ordinance-border-control {
+        border-color: #ffc857;
+    }
+    .ordinance-border-utility {
+        border-color: #7e57c2;
+    }
+
+    .ordinance-border-damage .ordinance-header-tag {
+        color: #ffb3b3;
+        border: 1px solid #ff4b4b;
+    }
+    .ordinance-border-heal .ordinance-header-tag {
+        color: #b6ffb6;
+        border: 1px solid #4caf50;
+    }
+    .ordinance-border-control .ordinance-header-tag {
+        color: #ffe9a8;
+        border: 1px solid #ffc857;
+    }
+    .ordinance-border-utility .ordinance-header-tag {
+        color: #e1d0ff;
+        border: 1px solid #7e57c2;
+    }
+
+    /* CARTAS COMPLETAS DE PRECEPTO (details+summary) */
+    details.precept-card {
+        margin-bottom: 0.7rem;
+        border-radius: 10px;
+        border: 2px solid #444;
+        background: rgba(10, 10, 10, 0.65);
+        position: relative;
+        overflow: hidden;
+        transition:
+            transform 0.18s ease-out,
+            box-shadow 0.18s ease-out,
+            border-color 0.18s ease-out;
+    }
+    details.precept-card summary {
+        list-style: none;
+        cursor: pointer;
+        padding: 0.6rem 0.8rem;
+        outline: none;
+    }
+    details.precept-card summary::-webkit-details-marker {
+        display: none;
+    }
+    .precept-header-title {
+        font-weight: 600;
+        font-size: 0.95rem;
+        margin-bottom: 0.1rem;
+    }
+    .precept-header-sub {
+        font-size: 0.8rem;
+        opacity: 0.85;
+    }
+    .precept-header-tag {
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin-top: 0.3rem;
+        display: inline-block;
+        padding: 0.1rem 0.4rem;
+        border-radius: 999px;
+        background: rgba(0, 0, 0, 0.4);
+    }
+    .precept-details {
+        padding: 0 0.8rem 0.6rem 0.8rem;
+        border-top: 1px solid rgba(255,255,255,0.06);
+        font-size: 0.85rem;
+    }
+    details.precept-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 0 16px rgba(0,0,0,0.8);
+    }
+        /* PRECEPTOS */
+    .precept-card {
+        margin-top: 0.4rem;
+        margin-bottom: 0.2rem;
+        padding: 0.5rem 0.7rem;
+        border-radius: 8px;
+        border: 1px solid #444;
+        background: rgba(10, 10, 10, 0.5);
+        transition:
+            transform 0.16s ease-out,
+            box-shadow 0.16s ease-out,
+            border-color 0.16s ease-out,
+            background 0.16s ease-out;
+        cursor: pointer;
+    }
+    .precept-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 0 14px rgba(0,0,0,0.7);
+    }
+    .precept-card-title {
+        font-weight: 600;
+        font-size: 0.95rem;
+    }
+    .precept-card-sub {
+        font-size: 0.8rem;
+        opacity: 0.85;
+    }
+    /* CARTAS COMPLETAS DE NUMEN (details+summary) */
+    details.numen-card-full {
+        margin-bottom: 0.7rem;
+        border-radius: 10px;
+        border: 2px solid #444;
+        background: rgba(8, 8, 12, 0.7);
+        position: relative;
+        overflow: hidden;
+        transition:
+            transform 0.18s ease-out,
+            box-shadow 0.18s ease-out,
+            border-color 0.18s ease-out;
+    }
+    details.numen-card-full summary {
+        list-style: none;
+        cursor: pointer;
+        padding: 0.6rem 0.8rem;
+        outline: none;
+    }
+    details.numen-card-full summary::-webkit-details-marker {
+        display: none;
+    }
+    .numen-header-title {
+        font-weight: 600;
+        font-size: 0.95rem;
+        margin-bottom: 0.1rem;
+    }
+    .numen-header-sub {
+        font-size: 0.8rem;
+        opacity: 0.85;
+        margin-bottom: 0.15rem;
+    }
+    .numen-header-tags {
+        font-size: 0.75rem;
+        opacity: 0.9;
+    }
+    .numen-details {
+        padding: 0 0.8rem 0.6rem 0.8rem;
+        border-top: 1px solid rgba(255,255,255,0.06);
+        font-size: 0.85rem;
+    }
+    details.numen-card-full:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 0 16px rgba(0,0,0,0.8);
+    }
+
+    /* reaprovechamos la textura animada de las ordenanzas para todas las "details-card" */
+    details.precept-card::before,
+    details.numen-card-full::before {
+        content: "";
+        position: absolute;
+        inset: -40%;
+        background: conic-gradient(
+            from 0deg,
+            rgba(255,255,255,0.0),
+            rgba(255,255,255,0.2),
+            rgba(255,255,255,0.0),
+            rgba(255,255,255,0.2),
+            rgba(255,255,255,0.0)
+        );
+        opacity: 0.12;
+        mix-blend-mode: screen;
+        animation: spin-glow 20s linear infinite;
+        pointer-events: none;
+    }
+
+    @keyframes spin-glow {
+        to { transform: rotate(360deg); }
+    }
+    </style>
+    """
+    st.markdown(css, unsafe_allow_html=True)
+
+
+
+def inject_numen_hover_css():
+    # Efectos diferenciados por Numen (hover)
+    effects = [
+        "transform: translateY(-3px) scale(1.03); box-shadow: 0 0 18px {color};",
+        "transform: translateY(-2px) scale(1.02); box-shadow: 0 0 4px {color}, 0 0 16px {color};",
+        "transform: translateY(-2px); box-shadow: 0 0 0 2px {color}; filter: saturate(130%);",
+        "transform: translateY(-2px) scale(1.02) rotate(-0.5deg); box-shadow: 0 0 10px {color};",
+    ]
+    parts = ["<style>"]
+    for i, (nid, n) in enumerate(NUMEN.items()):
+        color = n.get("color_hex", "#FFFFFF")
+        effect = effects[i % len(effects)].replace("{color}", color)
+        class_name = f"numen-{nid.lower()}"
+        parts.append(f".numen-card.{class_name}:hover {{{effect} border-color:{color};}}")
+    parts.append("</style>")
+    st.markdown("\n".join(parts), unsafe_allow_html=True)
+
+
+# Colores por categoría de Precepto
+PRECEPT_CATEGORY_COLORS = {
+    "Elemental": "#ff6b3b",
+    "Vital": "#4caf50",
+    "Cognitiva": "#a47dff",
+    "Pragmática": "#ffc857",
+    "Sin categoría": "#666666",
+}
+
+def get_precept_color(precept_dict: dict) -> str:
+    cat = precept_dict.get("category", "Sin categoría")
+    return PRECEPT_CATEGORY_COLORS.get(cat, "#555555")
+
+def render_precept_card(precept_id: str):
+    p = PRECEPTS.get(precept_id)
+    if not p:
+        st.write(f"(Precepto {precept_id} no definido)")
+        return
+
+    color = get_precept_color(p)
+    cat = p.get("category", "Sin categoría")
+    desc = p.get("description", "_Sin descripción_")
+    examples = p.get("example_ordinances", [])
+    pref_numen = p.get("preferred_numen_ids", [])
+
+    if pref_numen:
+        numen_names = [
+            NUMEN[nid]["display_name"]
+            for nid in pref_numen
+            if nid in NUMEN
+        ]
+        numen_line = ", ".join(numen_names)
+    else:
+        numen_line = "—"
+
+    examples_html = ""
+    if examples:
+        items = "".join(f"<li>{e}</li>" for e in examples)
+        examples_html = f"<ul>{items}</ul>"
+
+    html = f"""
+    <details class="precept-card" style="border-color:{color};background:{color}22;">
+      <summary>
+        <div class="precept-header-title">{p['verb']}</div>
+        <div class="precept-header-sub">{cat}</div>
+        <span class="precept-header-tag">Precepto</span>
+      </summary>
+      <div class="precept-details">
+        <p><strong>Descripción:</strong><br>{desc}</p>
+        <p><strong>Numen preferentes:</strong> {numen_line}</p>
+        {"<p><strong>Ejemplos de ordenanzas:</strong></p>" + examples_html if examples_html else ""}
+      </div>
+    </details>
+    """
+    st.markdown(html, unsafe_allow_html=True)
+
+
+def render_numen_card(nid: str, compact: bool = False):
+    """Tarjeta de Numen con hover por tipo."""
+    if nid not in NUMEN:
+        st.write(f"(Numen {nid} no definido)")
+        return
+    n = NUMEN[nid]
+    bg_color = n.get("color_hex", "#FFFFFF") + "22"
+    tags = ", ".join(n.get("tags", []))
+    desc_full = n.get("description", "")
+    short_desc = n.get("short_description", desc_full[:80] + "..." if desc_full else "")
+    extra_style = "min-height: 4.5rem;" if compact else "min-height: 5.5rem;"
+
+    html = f"""
+    <div class="numen-card numen-{nid.lower()}" style="background:{bg_color}; {extra_style}">
+        <span class="numen-card-name">{n['display_name']}</span>
+        <span class="numen-card-tags">{tags}</span>
+        <span class="numen-card-desc">{short_desc}</span>
+    </div>
+    """
+    st.markdown(html, unsafe_allow_html=True)
+
+def render_numen_full_card(nid: str):
+    n = NUMEN.get(nid)
+    if not n:
+        st.write(f"(Numen {nid} no definido)")
+        return
+
+    color = n.get("color_hex", "#FFFFFF")
+    bg = color + "22"
+    name = n["display_name"]
+    base_name = n["name"]
+    tags = ", ".join(n.get("tags", [])) or "—"
+    desc = n.get("description", "_Sin descripción_")
+
+    html = f"""
+    <details class="numen-card-full" style="border-color:{color};background:{bg};">
+      <summary>
+        <div class="numen-header-title">{name}</div>
+        <div class="numen-header-sub">{base_name}</div>
+        <div class="numen-header-tags">{tags}</div>
+      </summary>
+      <div class="numen-details">
+        <p><strong>Descripción:</strong><br>{desc}</p>
+      </div>
+    </details>
+    """
+    st.markdown(html, unsafe_allow_html=True)
+
+
+def render_animated_ordinance_card(o, effect_type: str, mechanics_summary: str):
+    if o.numen_ids:
+        primary = NUMEN.get(o.numen_ids[0], {})
+        bg_color = primary.get("color_hex", "#FFFFFF") + "22"
+        numen_label = ", ".join(
+            NUMEN.get(nid, {}).get("display_name", nid) for nid in o.numen_ids
+        )
+    else:
+        bg_color = "rgba(80,80,80,0.3)"
+        numen_label = "Sin Numen"
+
+    precept_name = PRECEPTS.get(o.precept_id, {}).get("verb", o.precept_id)
+
+    border_class = {
+        "damage": "ordinance-border-damage",
+        "heal": "ordinance-border-heal",
+        "control": "ordinance-border-control",
+        "utility": "ordinance-border-utility",
+    }.get(effect_type, "ordinance-border-utility")
+
+    effect_label = {
+        "damage": "Daño",
+        "heal": "Curación",
+        "control": "Control",
+        "utility": "Utilidad",
+    }.get(effect_type, "Utilidad")
+
+    # Modificadores en texto
+    if o.modifiers:
+        mods_lines = []
+        for sel in o.modifiers:
+            m = MODIFIERS.get(sel.modifier_id, {})
+            name = m.get("name", sel.modifier_id)
+            extra = []
+            if sel.rank != 1:
+                extra.append(f"rango {sel.rank}")
+            if sel.extra_instances > 0:
+                extra.append(f"+{sel.extra_instances} instancias")
+            extra_str = f" ({', '.join(extra)})" if extra else ""
+            mods_lines.append(f"• {name}{extra_str}")
+        mods_text = "<br>".join(mods_lines)
+    else:
+        mods_text = "• Ningún modificador aplicado."
+
+    mech_saved = o.mechanical or {}
+    narrative = mech_saved.get("narrative", "")
+    notes = mech_saved.get("notes", "")
+
+    html = f"""
+    <details class="ordinance-card {border_class}" style="background:{bg_color};">
+      <summary>
+        <div class="ordinance-header-title">{o.name}</div>
+        <div class="ordinance-header-sub">
+            Precepto: {precept_name} · Numen: {numen_label} · Tier {o.tier}
+        </div>
+        <div class="ordinance-header-tag">{effect_label}</div>
+      </summary>
+      <div class="ordinance-details">
+        <p><strong>Sugerencia mecánica (actual):</strong><br>{mechanics_summary}</p>
+        <p><strong>Efecto narrativo guardado:</strong><br>{narrative or '<em>Sin texto narrativo guardado.</em>'}</p>
+        {"<p><em>Notas:</em> " + notes + "</p>" if notes else ""}
+        <p><strong>Modificadores:</strong><br>{mods_text}</p>
+        <p><strong>Coste:</strong><br>
+           Complejidad: {o.cost.get('complexity_points', '—')} · Tier: {o.cost.get('tier', o.tier)}
+        </p>
+      </div>
+    </details>
+    """
+    st.markdown(html, unsafe_allow_html=True)
+
+
+
+inject_global_css()
+inject_numen_hover_css()
+
+
+def render_numen_card(nid: str, compact: bool = False):
+    """
+    Renderiza una tarjeta de Numen con efecto hover.
+    compact=True la hace un pelín más corta para listados tipo grid.
+    """
+    if nid not in NUMEN:
+        st.write(f"(Numen {nid} no definido)")
+        return
+
+    n = NUMEN[nid]
+    bg_color = n.get("color_hex", "#FFFFFF") + "22"
+    tags = ", ".join(n.get("tags", []))
+    desc_full = n.get("description", "")
+    short_desc = n.get("short_description", desc_full[:80] + "..." if desc_full else "")
+
+    extra_style = "min-height: 4.5rem;" if compact else "min-height: 5.5rem;"
+
+    html = f"""
+    <div class="numen-card numen-{nid.lower()}" style="background:{bg_color}; {extra_style}">
+        <span class="numen-card-name">{n['display_name']}</span>
+        <span class="numen-card-tags">{tags}</span>
+        <span class="numen-card-desc">{short_desc}</span>
+    </div>
+    """
+    st.markdown(html, unsafe_allow_html=True)
+
+
+
+
 st.title("A.R.C.A.N.A. — Sistema de Ordenanzas")
 
 # -------------------------------------------------------------------
@@ -79,43 +628,17 @@ if mode == "Explorador de Preceptos":
         filtered_ids.append(pid)
 
     if not filtered_ids:
-        st.info("No se han encontrado preceptos con esos filtros.")
+            st.info("No se han encontrado preceptos con esos filtros.")
     else:
-        st.write(f"Se han encontrado **{len(filtered_ids)}** preceptos.")
-        for pid in sorted(filtered_ids):
-            p = PRECEPTS[pid]
-            with st.expander(f"{p['verb']} ({pid}) — {p.get('category', '')}"):
-                st.markdown(f"**Verbo:** `{p['verb']}`")
-                st.markdown(f"**ID:** `{pid}`")
-                st.markdown(f"**Categoría:** `{p.get('category', '—')}`")
+            st.write(f"Se han encontrado **{len(filtered_ids)}** preceptos.")
 
-                pref_numen = p.get("preferred_numen_ids", [])
-                if pref_numen:
-                    st.markdown("**Numen preferente:**")
-                    cols_numen = st.columns(len(pref_numen))
-                    for c, nid in zip(cols_numen, pref_numen):
-                        if nid in NUMEN:
-                            n = NUMEN[nid]
-                            with c:
-                                st.markdown(
-                                    f"<div style='padding:0.4rem;border-radius:6px;"
-                                    f"border:1px solid #444;background:{n['color_hex']}22;'>"
-                                    f"<strong>{n['display_name']}</strong><br>"
-                                    f"<small>{', '.join(n['tags'])}</small>"
-                                    f"</div>",
-                                    unsafe_allow_html=True,
-                                )
-                        else:
-                            c.write(f"- {nid} (definir en NUMEN)")
+            ordered_pids = sorted(
+                filtered_ids,
+                key=lambda pid: PRECEPTS[pid]["verb"].lower()
+            )
 
-                st.markdown("**Descripción:**")
-                st.write(p.get("description", "_Sin descripción_"))
-
-                ex = p.get("example_ordinances", [])
-                if ex:
-                    st.markdown("**Ejemplos de Ordenanzas:**")
-                    for e in ex:
-                        st.markdown(f"- {e}")
+            for pid in ordered_pids:
+                render_precept_card(pid)
 
 
     st.stop()
@@ -157,23 +680,23 @@ if mode == "Explorador de Numen":
         filtered_ids.append(nid)
 
     if not filtered_ids:
-        st.info("No se han encontrado Numen con esos filtros.")
+            st.info("No se han encontrado Numen con esos filtros.")
     else:
-        st.write(f"Se han encontrado **{len(filtered_ids)}** Numen.")
-        cols = st.columns(3)
-        for i, nid in enumerate(sorted(filtered_ids)):
-            n = NUMEN[nid]
-            col = cols[i % 3]
-            with col:
-                st.markdown(
-                    f"<div style='margin-bottom:0.8rem;padding:0.6rem;border-radius:10px;"
-                    f"border:1px solid #444;background:{n['color_hex']}33;'>"
-                    f"<strong>{n['display_name']}</strong><br>"
-                    f"<small>{', '.join(n.get('tags', []))}</small><br>"
-                    f"<span style='font-size: 0.8rem;'>{n.get('short_description', n.get('description', '')[:90] + '...')}</span>"
-                    f"</div>",
-                    unsafe_allow_html=True,
-                )
+            st.write(f"Se han encontrado **{len(filtered_ids)}** Numen.")
+
+            ordered_ids = sorted(
+                filtered_ids,
+                key=lambda nid: NUMEN[nid]["display_name"].lower()
+            )
+
+            # Si quieres en columnas, mantenemos 2–3 columnas; o una sola columna si las prefieres grandes
+            cols = st.columns(3)
+            for i, nid in enumerate(ordered_ids):
+                col = cols[i % 3]
+                with col:
+                    render_numen_full_card(nid)
+
+
 
 
     st.stop()
@@ -182,73 +705,109 @@ if mode == "Explorador de Numen":
 # MODO: EXPLORADOR DE MODIFICADORES
 # ===================================================================
 if mode == "Explorador de Modificadores":
-    st.header("Explorador de Modificadores / Partículas")
+    st.header("Explorador de Modificadores")
 
     families = sorted({m["family"] for m in MODIFIERS.values()})
     families.insert(0, "Todas")
 
-    col_filters = st.columns([2, 2, 3])
+    col_filters = st.columns([2, 3])
     with col_filters[0]:
         fam_filter = st.selectbox(
-            "Filtrar por familia:",
+            "Filtrar por familia (para mostrar una ruleta o todas):",
             options=families,
             index=0,
         )
     with col_filters[1]:
         search_text = st.text_input(
-            "Buscar por nombre:",
+            "Buscar por nombre o descripción:",
             value="",
             placeholder="Ej: Cono, Persistente...",
+        ).lower()
+
+    # Determinar qué familias vamos a mostrar en ruleta
+    if fam_filter == "Todas":
+        fams_to_show = sorted({m["family"] for m in MODIFIERS.values()})
+    else:
+        fams_to_show = [fam_filter]
+
+    total_mods = 0
+    for fam in fams_to_show:
+        fam_mods = [
+            (mid, m)
+            for mid, m in MODIFIERS.items()
+            if m["family"] == fam
+        ]
+
+        # Filtro por búsqueda
+        fam_mods = [
+            (mid, m)
+            for mid, m in fam_mods
+            if not search_text
+            or search_text in m["name"].lower()
+            or search_text in m.get("description", "").lower()
+        ]
+
+        if not fam_mods:
+            continue
+
+        total_mods += len(fam_mods)
+        st.markdown(f"### Familia: {fam}")
+
+        # Ordenar por nombre
+        fam_mods_sorted = sorted(fam_mods, key=lambda x: x[1]["name"].lower())
+        options = [mid for mid, _ in fam_mods_sorted]
+
+        # Ruleta (select_slider)
+        selected_mid = st.select_slider(
+            "Gira la ruleta para elegir un modificador:",
+            options=options,
+            format_func=lambda mid: MODIFIERS[mid]["name"],
+            key=f"slider_{fam}",
         )
 
-    filtered_ids = []
-    for mid, m in MODIFIERS.items():
-        if fam_filter != "Todas" and m["family"] != fam_filter:
-            continue
-        if search_text:
-            t = search_text.lower()
-            if t not in m["name"].lower() and t not in m.get(
-                "description", ""
-            ).lower():
-                continue
-        filtered_ids.append(mid)
+        sel_mod = MODIFIERS[selected_mid]
 
-    if not filtered_ids:
-        st.info("No se han encontrado modificadores con esos filtros.")
-    else:
-        st.write(f"Se han encontrado **{len(filtered_ids)}** modificadores.")
-        for mid in sorted(filtered_ids):
-                    m = MODIFIERS[mid]
-                    with st.expander(f"{m['name']}"):
-                        st.markdown(f"**Familia:** {m['family']}")
-                        st.markdown("**Descripción:**")
-                        st.write(m.get("description", "_Sin descripción_"))
+        st.markdown(
+            f"""
+            <div class="modifier-card">
+                <div class="modifier-card-title">{sel_mod['name']}</div>
+                <div class="modifier-card-sub">Familia: {sel_mod['family']}</div>
+                <div style="font-size:0.85rem;margin-top:0.2rem;">
+                    {sel_mod.get("description", "_Sin descripción_")}
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
 
-                        # Costes como texto, no JSON crudo
-                        st.markdown("**Costes (modelo actual):**")
-                        base_cost = m.get("base_cost")
-                        rank_cost = m.get("rank_cost")
-                        extra_long = m.get("extra_long_duration_cost")
-                        per_instance = m.get("per_extra_instance_cost")
+        # Costes como texto
+        base_cost = sel_mod.get("base_cost")
+        rank_cost = sel_mod.get("rank_cost")
+        extra_long = sel_mod.get("extra_long_duration_cost")
+        per_instance = sel_mod.get("per_extra_instance_cost")
 
-                        lines = []
-                        if base_cost is not None:
-                            lines.append(f"- Coste base: {base_cost}")
-                        if rank_cost is not None:
-                            lines.append(f"- Coste por rango: {rank_cost}")
-                        if extra_long is not None:
-                            lines.append(f"- Coste extra por duración larga: {extra_long}")
-                        if per_instance is not None:
-                            lines.append(f"- Coste por instancia adicional: {per_instance}")
-                        if not lines:
-                            lines.append("- Sin costes específicos definidos.")
+        st.markdown("**Costes (modelo actual):**")
+        lines = []
+        if base_cost is not None:
+            lines.append(f"- Coste base: {base_cost}")
+        if rank_cost is not None:
+            lines.append(f"- Coste por rango: {rank_cost}")
+        if extra_long is not None:
+            lines.append(f"- Coste extra por duración larga: {extra_long}")
+        if per_instance is not None:
+            lines.append(f"- Coste por instancia adicional: {per_instance}")
+        if not lines:
+            lines.append("- Sin costes específicos definidos.")
+        st.markdown("\n".join(lines))
 
-                        st.markdown("\n".join(lines))
+        st.markdown("**Tags:** " + (", ".join(sel_mod.get("tags", [])) or "—"))
 
-                        st.markdown("**Tags:** " + (", ".join(m.get("tags", [])) or "—"))
+
+        st.markdown("---")
 
 
     st.stop()
+
 
 # ===================================================================
 # MODO: GRIMORIO DE ORDENANZAS
@@ -260,38 +819,55 @@ if mode == "Grimorio de Ordenanzas":
         st.info("Aún no hay Ordenanzas registradas. Usa el Constructor para crear algunas.")
         st.stop()
 
-    # Filtros: Numen, Precepto, Tier, texto
+    # Filtros: Tipo, Numen, Precepto, Tier, texto
     all_numen_ids = sorted({nid for o in ORDINANCES.values() for nid in o.numen_ids})
     all_precepts = sorted({o.precept_id for o in ORDINANCES.values()})
     all_tiers = sorted({o.tier for o in ORDINANCES.values()})
 
-    col_filters = st.columns(4)
+    EFFECT_FILTER_LABELS = {
+        "Todas 🟦": None,
+        "🟥 Daño": "damage",
+        "🟩 Curación": "heal",
+        "🟨 Control": "control",
+        "🟪 Utilidad": "utility",
+    }
+
+    col_filters = st.columns(5)
     with col_filters[0]:
+        effect_label = st.selectbox(
+            "Tipo de ordenanza:",
+            options=list(EFFECT_FILTER_LABELS.keys()),
+            index=0,
+        )
+        effect_filter = EFFECT_FILTER_LABELS[effect_label]
+
+    with col_filters[1]:
         numen_filter = st.multiselect(
             "Filtrar por Numen:",
             options=all_numen_ids,
             format_func=lambda nid: NUMEN.get(nid, {}).get("display_name", nid),
         )
-    with col_filters[1]:
+    with col_filters[2]:
         precept_filter = st.multiselect(
             "Filtrar por Precepto:",
             options=all_precepts,
             format_func=lambda pid: PRECEPTS.get(pid, {}).get("verb", pid),
         )
-    with col_filters[2]:
+    with col_filters[3]:
         tier_filter = st.multiselect(
             "Filtrar por Tier:",
             options=all_tiers,
             default=all_tiers,
         )
-    with col_filters[3]:
+    with col_filters[4]:
         search_text = st.text_input(
             "Buscar por nombre:",
             value="",
             placeholder="Ej: Llama Voraz...",
-        )
+        ).lower()
 
-    # Aplicar filtros
+
+    # Aplicar filtros + tipo de ordenanza
     filtered = []
     for o in ORDINANCES.values():
         if numen_filter and not any(n in o.numen_ids for n in numen_filter):
@@ -300,55 +876,45 @@ if mode == "Grimorio de Ordenanzas":
             continue
         if tier_filter and o.tier not in tier_filter:
             continue
-        if search_text:
-            t = search_text.lower()
-            if t not in o.name.lower():
-                continue
-        filtered.append(o)
+        if search_text and search_text not in o.name.lower():
+            continue
+
+        # Tipo de ordenanza a partir de la sugerencia mecánica
+        long_duration_flag = any(
+            sel.modifier_id == "DURACION_PERSISTENTE" for sel in o.modifiers
+        )
+        complexity_o = calculate_complexity(
+            precept_id=o.precept_id,
+            numen_ids=o.numen_ids,
+            modifiers=o.modifiers,
+            long_duration=long_duration_flag,
+        )
+        mech = suggest_mechanics(
+            precept_id=o.precept_id,
+            numen_ids=o.numen_ids,
+            modifiers=o.modifiers,
+            complexity=complexity_o,
+            long_duration=long_duration_flag,
+        )
+        effect_type = mech.get("type", "utility")
+
+        if effect_filter and effect_type != effect_filter:
+            continue
+
+        filtered.append((o, effect_type, mech))
 
     st.write(f"Se han encontrado **{len(filtered)}** Ordenanzas.")
 
     # Ordenar por tier y nombre
-    filtered.sort(key=lambda x: (x.tier, x.name.lower()))
+    filtered.sort(key=lambda tup: (tup[0].tier, tup[0].name.lower()))
 
-    for o in filtered:
-        precept_name = PRECEPTS.get(o.precept_id, {}).get("verb", o.precept_id)
-        numen_names = [
-            NUMEN.get(nid, {}).get("name", nid) for nid in o.numen_ids
-        ]
-        with st.expander(
-            f"{o.name} (Tier {o.tier}) — {precept_name} + {', '.join(numen_names)}"
-        ):
-            st.markdown(f"**ID:** `{o.id}`")
-            st.markdown(f"**Clave canónica:** `{o.canonical_key}`")
-            st.markdown(f"**Precepto:** `{precept_name}`")
-            st.markdown(
-                "**Numen:** "
-                + ", ".join(
-                    NUMEN.get(nid, {}).get("display_name", nid)
-                    for nid in o.numen_ids
-                )
-            )
+    for o, effect_type, mech in filtered:
+        summary = mech.get("summary", "")
+        render_animated_ordinance_card(o, effect_type, summary)
 
-            # Mostrar modificadores
-            if o.modifiers:
-                st.markdown("**Modificadores:**")
-                for sel in o.modifiers:
-                    m = MODIFIERS.get(sel.modifier_id, {})
-                    line = f"- {m.get('name', sel.modifier_id)}"
-                    if sel.rank != 1:
-                        line += f" (rango {sel.rank})"
-                    if sel.extra_instances > 0:
-                        line += f" · +{sel.extra_instances} instancias"
-                    st.markdown(line)
-            else:
-                st.markdown("**Modificadores:** ninguno.")
 
-            st.markdown("**Descripción:**")
-            mech = o.mechanical or {}
-            st.write(mech.get("narrative", ""))
-            if "notes" in mech:
-                st.markdown(f"**Efecto mecánico:** {mech['notes']}")
+
+
 
 
     st.stop()
@@ -371,24 +937,21 @@ precept_choice = st.sidebar.selectbox(
 )
 
 precept = PRECEPTS[precept_choice]
+p_color = get_precept_color(precept)
 
 st.header("Constructor de Ordenanzas")
-st.subheader(f"Precepto seleccionado: **{precept['verb']}**")
-
-# Descripción legible
+st.markdown(
+    f"""
+    <div class="precept-card" style="border-color:{p_color};background:{p_color}22;">
+        <div class="precept-card-title">Precepto seleccionado: {precept['verb']}</div>
+        <div class="precept-card-sub">{precept.get('category', 'Sin categoría')}</div>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
 st.markdown(precept.get("description", "_Sin descripción definida._"))
 
-# Numen preferentes como texto
-preferred = precept.get("preferred_numen_ids", [])
-if preferred:
-    names = [
-        NUMEN[nid]["display_name"]
-        for nid in preferred
-        if nid in NUMEN
-    ]
-    st.markdown(f"**Numen preferentes:** {', '.join(names)}")
-else:
-    st.markdown("**Numen preferentes:** —")
+
 
 
 
@@ -410,17 +973,9 @@ if not numen_multi_choice:
 st.write("### Numen seleccionados")
 cols = st.columns(len(numen_multi_choice))
 for col, nid in zip(cols, numen_multi_choice):
-    n = NUMEN[nid]
     with col:
-        st.markdown(
-            f"<div style='padding:0.5rem;border-radius:8px;border:1px solid #444;"
-            f"background:{n['color_hex']}22;'>"
-            f"<strong>{n['display_name']}</strong><br>"
-            f"<small>{', '.join(n.get('tags', []))}</small><br>"
-            f"<span style='font-size: 0.8rem;'>{n.get('short_description', n.get('description', '')[:80] + '...')}</span>"
-            f"</div>",
-            unsafe_allow_html=True,
-        )
+        render_numen_card(nid, compact=True)
+
 
 # --- 3) Select Modifiers ---
 st.sidebar.header("3. Partículas / Modificadores")

@@ -640,7 +640,7 @@ def suggest_control_effect(
         control_kind = "de movimiento/entorno"
     elif category == "Vital":
         control_kind = "de estado físico/vital"
-    elif category == "Constructiva":
+    elif category == "Pragmática":
         control_kind = "de bloqueo/estructura"
 
     # DC sugerida

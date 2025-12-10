@@ -453,7 +453,7 @@ PRECEPTS: Dict[str, Dict[str, Any]] = {
     "TEJER": {
         "id": "TEJER",
         "verb": "Tejer",
-        "category": "Constructiva",
+        "category": "Pragmática",
         "preferred_numen_ids": ["LIKA", "METALLUM"],
         "description": "Entreteje materia, vínculos o patrones.",
         "example_ordinances": ["Armadura de Hierro"],
@@ -463,7 +463,7 @@ PRECEPTS: Dict[str, Dict[str, Any]] = {
     "FORJAR": {
         "id": "FORJAR",
         "verb": "Forjar",
-        "category": "Constructiva",
+        "category": "Pragmática",
         "preferred_numen_ids": ["METALLUM", "TELLURIS"],
         "description": "Da forma final y propósito a un objeto o efecto.",
         "example_ordinances": ["Martillo Arcano", "Forja Viva"],
@@ -473,7 +473,7 @@ PRECEPTS: Dict[str, Dict[str, Any]] = {
     "MOLDEAR": {
         "id": "MOLDEAR",
         "verb": "Moldear",
-        "category": "Constructiva",
+        "category": "Pragmática",
         "preferred_numen_ids": ["TELLURIS", "VITALIS"],
         "description": "Reconfigura estructuras físicas u orgánicas.",
         "example_ordinances": ["Raíces Vivas", "Raíz del Alba"],
@@ -483,7 +483,7 @@ PRECEPTS: Dict[str, Dict[str, Any]] = {
     "DESATAR": {
         "id": "DESATAR",
         "verb": "Desatar",
-        "category": "Constructiva",
+        "category": "Pragmática",
         "preferred_numen_ids": ["MITAUNA", "RAIZENS"],
         "description": "Libera energía contenida en una explosión o choque.",
         "example_ordinances": ["Tormenta Relampagueante", "Rayo del Juicio"],
@@ -493,7 +493,7 @@ PRECEPTS: Dict[str, Dict[str, Any]] = {
     "SELLAR": {
         "id": "SELLAR",
         "verb": "Sellar",
-        "category": "Constructiva",
+        "category": "Pragmática",
         "preferred_numen_ids": ["CRYOBORENS", "LIMINIS"],
         "description": "Clausura, bloquea o fija algo en un estado.",
         "example_ordinances": ["Prisión de Hielo", "Círculo del Ocaso", "Crisálida Helada"],
@@ -503,7 +503,7 @@ PRECEPTS: Dict[str, Dict[str, Any]] = {
     "MARCAR": {
         "id": "MARCAR",
         "verb": "Marcar",
-        "category": "Constructiva",
+        "category": "Pragmática",
         "preferred_numen_ids": ["IGNOTA", "LIKA"],
         "description": "Imprime un sello o condición que se activará después.",
         "example_ordinances": ["Sello de Juramento"],
@@ -513,7 +513,7 @@ PRECEPTS: Dict[str, Dict[str, Any]] = {
     "CORTAR": {
         "id": "CORTAR",
         "verb": "Cortar",
-        "category": "Constructiva",
+        "category": "Pragmática",
         "preferred_numen": ["CRYOB", "IGNIS", "LIMINIS", "METALLUM", "RAIZENS"],
         "description": "Produce un tajo físico o energético capaz de seccionar materia o energía.",
         "base_power": 1,
