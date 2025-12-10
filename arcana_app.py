@@ -358,11 +358,15 @@ if mode == "Grimorio de Ordenanzas":
 
 # --- 1) Select Precept ---
 st.sidebar.header("1. Precepto (Raíz)")
-precept_options = list(PRECEPTS.keys())
+precept_options = sorted(
+    PRECEPTS.keys(),
+    key=lambda pid: PRECEPTS[pid]["verb"].lower()
+)
+
 precept_choice = st.sidebar.selectbox(
     "Elige un Precepto base:",
     options=precept_options,
-    format_func=lambda pid: f"{PRECEPTS[pid]['verb']} ({pid})",
+    format_func=lambda pid: PRECEPTS[pid]["verb"],  # Solo el verbo, sin ID feo
 )
 
 precept = PRECEPTS[precept_choice]
