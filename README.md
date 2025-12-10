@@ -1,0 +1,2 @@
+# Arcana-Dataviz
+A repo for data visualization of a magic db as example of finding, storing and categorizing new data
