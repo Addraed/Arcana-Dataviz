@@ -510,6 +510,15 @@ PRECEPTS: Dict[str, Dict[str, Any]] = {
         "base_power": 1,
         "base_complexity": 1,
     },
+    "CORTAR": {
+        "id": "CORTAR",
+        "verb": "Cortar",
+        "category": "Constructiva",
+        "preferred_numen": ["CRYOB", "IGNIS", "LIMINIS", "METALLUM", "RAIZENS"],
+        "description": "Produce un tajo físico o energético capaz de seccionar materia o energía.",
+        "base_power": 1,
+        "base_complexity": 1,    
+    },
 }
 
 
@@ -526,8 +535,8 @@ PRECEPTS: Dict[str, Dict[str, Any]] = {
 
 _PRECEPT_MODES = {
     # Elementales
-    "ENCENDER": "damage",
-    "ENFRIAR": "damage",
+    "ENCENDER": "mixed",
+    "ENFRIAR": "mixed",
     "MOVER": "control",
     "ALTERAR_TIEMPO": "control",
     "ILUMINAR": "utility",
@@ -541,9 +550,9 @@ _PRECEPT_MODES = {
     "CURAR": "heal",
     "VINCULAR": "control",
     "PURIFICAR": "mixed",
-    "EXTRAER": "damage",
+    "EXTRAER": "mixed",
     "REVIVIR": "heal",
-    "ABSORBER": "damage",
+    "ABSORBER": "mixed",
     "FORTALECER": "heal",
     "PROTEGER": "heal",
 
@@ -562,6 +571,7 @@ _PRECEPT_MODES = {
     "DESATAR": "damage",
     "SELLAR": "control",
     "MARCAR": "control",
+    "CORTAR": "mixed",    
 }
 
 # Inyectamos el modo dentro de cada precepto para facilitar el acceso
@@ -650,10 +660,13 @@ MODIFIERS: Dict[str, Dict[str, Any]] = {
         "id": "ALCANCE_EXTENDIDO",
         "family": "ALCANCE_DURACION",
         "name": "Extendido",
-        "description": "Mayor alcance o radio efectivo.",
+        "description": "Mayor alcance o radio efectivo. Cada rango aumenta el tamaño del área.",
         "base_cost": 1,
+        "rank_cost": 1,      # +1 complejidad por rango adicional
+        "max_rank": 3,       # puedes subirlo si quieres magias XXL
         "tags": ["rango"],
     },
+
     "ALCANCE_PROYECTADO": {
         "id": "ALCANCE_PROYECTADO",
         "family": "ALCANCE_DURACION",

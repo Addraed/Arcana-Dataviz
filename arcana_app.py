@@ -443,6 +443,14 @@ for fam in families:
                 step=1,
                 key=f"extra_{mid}",
             )
+        if mid == "ALCANCE_EXTENDIDO":
+            rank = st.sidebar.slider(
+                "Rango de Alcance Extendido",
+                min_value=1,
+                max_value=mod.get("max_rank", 3),
+                value=1,
+                key=f"rank_{mid}",
+            )
 
         selected_modifiers.append(
             ModifierSelection(

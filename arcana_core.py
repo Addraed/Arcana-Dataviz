@@ -161,23 +161,26 @@ def extract_modifier_info(modifiers: list[ModifierSelection]) -> dict:
     Analiza los modificadores y devuelve info agregada útil para las sugerencias:
     - forma (linea, cono, esfera, muro, aura, None)
     - has_persistente
-    - has_extendido
+    - extendido_rank
     - has_proyectado
     - potenciado_rank
     - multiplicado_instances (>=1)
     """
     info = {
-        "shape": None,  # 'LINE', 'CONE', 'SPHERE', 'WALL', 'AURA'
+        "shape": None,              # 'LINE', 'CONE', 'SPHERE', 'WALL', 'AURA'
         "has_persistente": False,
-        "has_extendido": False,
+        "extendido_rank": 0,        # 0 = normal, 1+ = más tamaño/alcance
         "has_proyectado": False,
         "potenciado_rank": 0,
+        "has_reducido": False,
         "multiplicado_instances": 1,
     }
 
     # Formas: cogemos la primera que aparezca
     for sel in modifiers:
         mid = sel.modifier_id
+
+        # Formas (cogemos la primera que aparezca)
         if mid == "FORMA_LINEA" and info["shape"] is None:
             info["shape"] = "LINE"
         elif mid == "FORMA_CONO" and info["shape"] is None:
@@ -189,15 +192,23 @@ def extract_modifier_info(modifiers: list[ModifierSelection]) -> dict:
         elif mid == "FORMA_AURA" and info["shape"] is None:
             info["shape"] = "AURA"
 
+        # Duración / alcance
         if mid == "DURACION_PERSISTENTE":
             info["has_persistente"] = True
         if mid == "ALCANCE_EXTENDIDO":
-            info["has_extendido"] = True
+            # Si no tocas el slider, rank vendrá como 1 por defecto
+            rank = sel.rank if sel.rank and sel.rank > 0 else 1
+            info["extendido_rank"] = max(info["extendido_rank"], rank)
         if mid == "ALCANCE_PROYECTADO":
             info["has_proyectado"] = True
+
+        # Intensidad
         if mid == "INTENSIDAD_POTENCIADO":
             info["potenciado_rank"] = max(info["potenciado_rank"], sel.rank)
+        if mid == "INTENSIDAD_REDUCIDO":
+            info["has_reducido"] = True
         if mid == "INTENSIDAD_MULTIPLICADO":
+            # SOLO instancias, nunca rango
             info["multiplicado_instances"] = 1 + max(0, sel.extra_instances)
 
     return info
@@ -206,20 +217,31 @@ def extract_modifier_info(modifiers: list[ModifierSelection]) -> dict:
 def get_effect_type(precept_id: str, intent: str) -> str:
     """
     Devuelve 'damage', 'heal', 'control' o 'utility' en base al modo del precepto
-    y a la intención declarada.
+    y, solo si es 'mixed', usa la INTENCIÓN para decidir.
     """
     pre = PRECEPTS.get(precept_id, {})
     mode = pre.get("mode", "utility")
 
+    # Caso especial: preceptos mixtos
     if mode == "mixed":
         if intent == "OFFENSIVE":
             return "damage"
         if intent == "DEFENSIVE":
             return "heal"
-        # Sin clara intención → se trata como soporte/control
-        return "utility"
+        # Condicional / neutro → se comporta como control / soporte
+        return "control"
 
-    return mode
+    # Si el modo es uno de los estándar, lo respetamos tal cual
+    if mode in ("damage", "heal", "control", "utility"):
+        return mode
+
+    # Fallback por si algún precepto no tiene modo bien definido
+    if intent == "OFFENSIVE":
+        return "damage"
+    if intent == "DEFENSIVE":
+        return "heal"
+    return "utility"
+
 
 
 # ============================================================
@@ -249,7 +271,8 @@ def suggest_mechanics(
             precept_id=precept_id,
             numen_ids=numen_ids,
             tier=tier,
-            intent=intent,
+            effect_type=effect_type,   # 🔁 aquí pasamos damage/heal
+            intent=intent,             # sigue siendo útil p.ej. para texto
             mod_info=mod_info,
             long_duration=long_duration,
         )
@@ -273,17 +296,35 @@ def suggest_mechanics(
         )
 
 
-def _suggest_area_description(shape: str | None, tier: int) -> dict:
+
+def _suggest_area_description(
+    shape: str | None,
+    tier: int,
+    extendido_rank: int,
+) -> dict:
     """
-    Devuelve una pequeña descripción de área según forma y tier.
+    Devuelve una descripción de área según forma, tier
+    y rango de ALCANCE_EXTENDIDO.
+    - El tier marca la escala base.
+    - Cada rango de Extendido aumenta el tamaño (no la potencia).
     """
     if shape is None:
+        # Sin forma → objetivo único
+        if extendido_rank > 0:
+            desc = "Objetivo único a alcance medio (~18 m)."
+        else:
+            desc = "Objetivo único a alcance corto (~6 m)."
         return {
             "shape": "TARGET",
-            "description": "Objetivo único a alcance corto (~6 m).",
+            "description": desc,
         }
 
-    radius_base = 3 + (tier - 1) * 3  # 3, 6, 9, 12...
+    # Escala base por tier (3, 6, 9, 12…)
+    radius_base = 3 + (tier - 1) * 3
+
+    # Cada rango de Extendido crece el área
+    if extendido_rank > 0:
+        radius_base += 3 * extendido_rank
 
     if shape == "LINE":
         length = radius_base * 2
@@ -306,10 +347,11 @@ def _suggest_area_description(shape: str | None, tier: int) -> dict:
             "description": f"Esfera de ~{radius_base} m de radio.",
         }
     if shape == "AURA":
+        aura_r = max(3, radius_base - 3)
         return {
             "shape": "AURA",
-            "radius_m": max(3, radius_base - 3),
-            "description": f"Aura alrededor del regidor de ~{max(3, radius_base - 3)} m.",
+            "radius_m": aura_r,
+            "description": f"Aura alrededor del regidor de ~{aura_r} m.",
         }
     if shape == "WALL":
         length = radius_base * 2
@@ -326,79 +368,96 @@ def _suggest_area_description(shape: str | None, tier: int) -> dict:
     }
 
 
+
+
 def suggest_damage_or_heal(
     precept_id: str,
     numen_ids: list[str],
     tier: int,
+    effect_type: str,   # 'damage' o 'heal', viene del modo del precepto
     intent: str,
     mod_info: dict,
     long_duration: bool,
 ) -> dict:
     """
     Sugiere daño o curación en dados, área y duración.
+    - effect_type viene del modo del precepto ('damage' o 'heal')
+    - intent aún nos sirve para matices (ofensivo/defensivo/condicional)
     """
+
     # 1) UP base
     up = 1
 
-    # 2) Potenciado
+    # 2) Potenciado → más potencia
     up += mod_info["potenciado_rank"]
 
-    # 3) Tier → escala ligera
+    # 3) Reducido → atenúa
+    if mod_info.get("has_reducido", False):
+        up = max(0, up - 1)
+
+    # 4) Tier → escala ligera
     total_dice = max(1, up + (tier - 1))
 
-    # 4) Multiplicado → instancias
-    instances = max(1, mod_info["multiplicado_instances"])
+    # 5) Multiplicado → SOLO instancias, no rango
+    instances = max(1, mod_info.get("multiplicado_instances", 1))
     dice_per_instance = max(1, total_dice // instances)
 
-    # 5) Daño por ronda si Persistente
-    duration_text = "Instantáneo"
+    # 6) Persistente → repartir por rondas (DoT/HoT)
     per_round = None
     rounds = None
-    if mod_info["has_persistente"] or long_duration:
-        rounds = 1 + max(0, mod_info["potenciado_rank"])
-        rounds = min(rounds, 4)  # límite sano
+    duration_text = "Instantáneo"
+
+    if mod_info.get("has_persistente", False) or long_duration:
+        rounds = 1 + max(0, mod_info.get("potenciado_rank", 0))
+        rounds = min(rounds, 4)
         per_round = max(1, math.ceil(dice_per_instance / rounds))
         duration_text = f"Persistente ~{rounds} rondas"
 
     # Área
-    area = _suggest_area_description(mod_info["shape"], tier)
+    area = _suggest_area_description(
+        shape=mod_info.get("shape"),
+        tier=tier,
+        extendido_rank=mod_info.get("extendido_rank", 0),
+    )
 
-    # Elemento principal → usamos el primer Numen para nombrar
     element_name = NUMEN[numen_ids[0]]["name"] if numen_ids else "Genérico"
 
-    # Tipo textual
-    eff_kind = "daño" if intent == "OFFENSIVE" else "curación"
+    # Aquí ya no miramos la intención para decidir el tipo,
+    # usamos effect_type (viene del modo del precepto).
+    eff_kind = "daño" if effect_type == "damage" else "curación"
 
-    # Resumen legible
-    if per_round and rounds:
+    if per_round is not None and rounds is not None:
         summary = (
-            f"{eff_kind.title()} sugerida: {per_round}d6 por ronda"
+            f"{eff_kind.title()}: {per_round}d6 por ronda"
             f" durante ~{rounds} rondas ({element_name}), "
             f"{instances} instancia(s), área: {area['description']}"
         )
     else:
         summary = (
-            f"{eff_kind.title()} sugerida: {dice_per_instance}d6"
+            f"{eff_kind.title()}: {dice_per_instance}d6"
             f" ({element_name}), {instances} instancia(s), "
             f"área: {area['description']}"
         )
 
     return {
-        "type": "damage" if intent == "OFFENSIVE" else "heal",
+        "type": effect_type,  # 'damage' o 'heal' directo
         "summary": summary,
         "details": {
             "tier": tier,
             "total_dice_d6": total_dice,
             "dice_per_instance_d6": dice_per_instance,
             "instances": instances,
-            "persistent": bool(per_round and rounds),
+            "persistent": per_round is not None and rounds is not None,
             "dice_per_round_d6": per_round,
             "rounds": rounds,
             "element": element_name,
             "area": area,
             "duration": duration_text,
+            "intent": intent,
         },
     }
+
+
 
 
 def suggest_control_effect(
@@ -417,7 +476,25 @@ def suggest_control_effect(
     pot = mod_info["potenciado_rank"]
 
     # Severidad: 1–4
-    severity = min(4, max(1, tier + (1 if pot >= 2 else 0)))
+    has_reducido = mod_info["has_reducido"]
+
+    severity = tier
+    if pot >= 2:
+        severity += 1
+    if has_reducido:
+        severity -= 1
+
+    severity = min(4, max(1, severity))
+
+
+    # Área
+    area = _suggest_area_description(
+        shape=mod_info["shape"],
+        tier=tier,
+        extendido_rank=mod_info["extendido_rank"],
+    )
+
+
 
     # Duración en rondas
     rounds = severity
@@ -428,20 +505,20 @@ def suggest_control_effect(
     # Tipo de control aproximado
     control_kind = "general"
     if category == "Cognitiva":
-        control_kind = "mental / sensorial"
+        control_kind = "mental/sensorial"
     elif category == "Elemental":
-        control_kind = "movimiento / entorno"
+        control_kind = "de movimiento/entorno"
     elif category == "Vital":
-        control_kind = "estado físico / vital"
+        control_kind = "de estado físico/vital"
     elif category == "Constructiva":
-        control_kind = "bloqueo / estructura"
+        control_kind = "de bloqueo/estructura"
 
     # DC sugerida
     dc = 10 + tier  # luego le sumas bonificador del regidor en mesa
 
     summary = (
         f"Efecto de control {control_kind} de severidad {severity} "
-        f"durante ~{rounds} rondas. Salvación sugerida DC {dc}."
+        f"durante ~{rounds} rondas. Salvación sugerida DC {dc} + HOP."
     )
 
     return {
@@ -472,7 +549,13 @@ def suggest_utility_effect(
     pre = PRECEPTS.get(precept_id, {})
     category = pre.get("category", "Utility")
     element_name = NUMEN[numen_ids[0]]["name"] if numen_ids else "Genérico"
-    area = _suggest_area_description(mod_info["shape"], tier)
+    area = _suggest_area_description(
+        shape=mod_info["shape"],
+        tier=tier,
+        extendido_rank=mod_info["extendido_rank"],
+    )
+
+
 
     # Duración narrativa
     if mod_info["has_persistente"] or long_duration:
@@ -481,7 +564,7 @@ def suggest_utility_effect(
         dur = "instantáneo o unos segundos"
 
     summary = (
-        f"Efecto utilitario de tipo {category.lower()} ligado a {element_name}, "
+        f"Efecto utilitario de categoría {category.lower()} ligado a {element_name}, "
         f"área: {area['description']}, duración {dur}."
     )
 
