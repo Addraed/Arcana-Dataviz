@@ -533,6 +533,36 @@ PRECEPTS: Dict[str, Dict[str, Any]] = {
 # - "utility" → info, creación, soporte sin números directos
 # - "mixed"   → según INTENCIÓN: ofensivo = daño, defensivo = curación
 
+DICE_BY_MODE = {
+    "heal": 4,
+    "mixed": 6,
+    "damage": 10,
+    "utility": 6,
+}
+
+
+def get_base_die_for_precept(precept_id: str, effect_type: str | None = None) -> int:
+    """
+    Devuelve el tamaño del dado base (4, 6, 10, etc.) según el modo del precepto.
+    - mode='heal'   → d4
+    - mode='mixed'  → d6
+    - mode='damage' → d10
+    - mode='utility' → d6 si acaba siendo ofensivo/curativo
+
+    effect_type está por si en el futuro quieres diferenciar dentro de 'mixed'
+    (p.ej. mixed+heal = d4), pero por ahora no lo usamos.
+    """
+    pre = PRECEPTS.get(precept_id, {})
+    mode = pre.get("mode", "utility")
+
+    # Si algún día quieres algo como:
+    # if mode == "mixed" and effect_type == "heal": ...
+    # lo tendrías aquí.
+
+    return DICE_BY_MODE.get(mode, 6)
+
+
+
 _PRECEPT_MODES = {
     # Elementales
     "ENCENDER": "mixed",
@@ -651,11 +681,13 @@ MODIFIERS: Dict[str, Dict[str, Any]] = {
         "id": "DURACION_PERSISTENTE",
         "family": "ALCANCE_DURACION",
         "name": "Persistente",
-        "description": "Dura varios turnos/minutos, suele requerir concentración.",
+        "description": "La ordenanza permanece activa más allá del instante inicial.",
         "base_cost": 1,
-        "extra_long_duration_cost": 1,
-        "tags": ["concentracion"],
+        "rank_cost": 1,      # cada rango extra aumenta complejidad
+        "max_rank": 4,       # por ejemplo: 1=rondas, 2=minutos, 3=horas, 4=días+
+        "tags": ["duracion"],
     },
+
     "ALCANCE_EXTENDIDO": {
         "id": "ALCANCE_EXTENDIDO",
         "family": "ALCANCE_DURACION",

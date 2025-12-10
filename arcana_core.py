@@ -3,7 +3,7 @@
 from __future__ import annotations
 from typing import List, Dict, Any, Tuple
 from dataclasses import dataclass, asdict
-from arcana_data import NUMEN, PRECEPTS, MODIFIERS
+from arcana_data import NUMEN, PRECEPTS, MODIFIERS, get_base_die_for_precept
 import math
 import json
 import os
@@ -168,7 +168,7 @@ def extract_modifier_info(modifiers: list[ModifierSelection]) -> dict:
     """
     info = {
         "shape": None,              # 'LINE', 'CONE', 'SPHERE', 'WALL', 'AURA'
-        "has_persistente": False,
+        "persistente_rank": 0,      # 0 = no persistente, 1+ = duración más larga
         "extendido_rank": 0,        # 0 = normal, 1+ = más tamaño/alcance
         "has_proyectado": False,
         "potenciado_rank": 0,
@@ -194,7 +194,9 @@ def extract_modifier_info(modifiers: list[ModifierSelection]) -> dict:
 
         # Duración / alcance
         if mid == "DURACION_PERSISTENTE":
-            info["has_persistente"] = True
+            # si no has definido rank en el selector, asumimos 1
+            rank = sel.rank if getattr(sel, "rank", None) else 1
+            info["persistente_rank"] = max(info["persistente_rank"], rank)
         if mid == "ALCANCE_EXTENDIDO":
             # Si no tocas el slider, rank vendrá como 1 por defecto
             rank = sel.rank if sel.rank and sel.rank > 0 else 1
@@ -367,6 +369,115 @@ def _suggest_area_description(
         "description": "Forma inusual; define el área narrativamente.",
     }
 
+def _suggest_duration_profile(
+    effect_type: str,           # 'damage', 'heal', 'control', 'utility'
+    tier: int,                  # 1–4
+    persistente_rank: int,      # 0–3
+    potenciado_rank: int,       # 0–3
+    long_duration: bool,        # flag del UI
+) -> dict:
+    """
+    Devuelve un perfil de duración:
+    - kind: 'INSTANT', 'ROUNDS', 'MINUTES', 'HOURS', 'DAYS', 'WEEKS', 'MONTHS_YEARS'
+    - text: texto narrativo
+    - rounds: nº de rondas si aplica
+    - upkeep: 'bajo', 'medio', 'alto', 'muy alto'
+    """
+
+    # Sin persistencia ni intención de larga duración → instantáneo
+    if persistente_rank <= 0 and not long_duration:
+        return {
+            "kind": "INSTANT",
+            "text": "Instantáneo o unos segundos.",
+            "rounds": None,
+            "upkeep": "bajo",
+        }
+
+    # “Potencia de duración”: cuánto se está forzando a durar
+    duration_power = tier + persistente_rank + potenciado_rank
+    if long_duration:
+        duration_power += 1  # botón explícito de querer algo más largo
+
+    # Daño/curación vs utilidad/control
+    is_heavy = effect_type in ("damage", "heal")
+
+    # Mapeo para daño/curación (más caro y más difícil mantener en el tiempo)
+    if is_heavy:
+        if duration_power <= 2:
+            # combate / pocos turnos
+            rounds = 2 + duration_power  # 2–4 aprox.
+            return {
+                "kind": "ROUNDS",
+                "text": f"Persistente durante ~{rounds} rondas.",
+                "rounds": rounds,
+                "upkeep": "medio",
+            }
+        elif duration_power <= 4:
+            return {
+                "kind": "MINUTES",
+                "text": "Activa durante varios minutos.",
+                "rounds": None,
+                "upkeep": "alto",
+            }
+        elif duration_power <= 6:
+            return {
+                "kind": "HOURS",
+                "text": "Activa durante varias horas. Requiere concentración intensa.",
+                "rounds": None,
+                "upkeep": "muy alto",
+            }
+        elif duration_power <= 8:
+            return {
+                "kind": "DAYS",
+                "text": "Se mantiene un día entero a gran coste numénico.",
+                "rounds": None,
+                "upkeep": "extremo",
+            }
+        else:
+            return {
+                "kind": "WEEKS",
+                "text": "Sostener este efecto semanas roza el límite de lo posible; suele requerir anclaje o ritual estable.",
+                "rounds": None,
+                "upkeep": "extremo",
+            }
+
+    # Mapeo para utility/control (más fácil mantener en el tiempo)
+    else:
+        if duration_power <= 2:
+            return {
+                "kind": "MINUTES",
+                "text": "Activa durante algunos minutos.",
+                "rounds": None,
+                "upkeep": "bajo",
+            }
+        elif duration_power <= 4:
+            return {
+                "kind": "HOURS",
+                "text": "Activa durante varias horas. Coste numénico basal moderado.",
+                "rounds": None,
+                "upkeep": "medio",
+            }
+        elif duration_power <= 6:
+            return {
+                "kind": "DAYS",
+                "text": "Efecto sostenido durante uno o varios días.",
+                "rounds": None,
+                "upkeep": "medio-alto",
+            }
+        elif duration_power <= 8:
+            return {
+                "kind": "WEEKS",
+                "text": "Efecto anclado durante semanas, habitual en rituales de alto nivel.",
+                "rounds": None,
+                "upkeep": "alto",
+            }
+        else:
+            return {
+                "kind": "MONTHS_YEARS",
+                "text": "Efecto cuasi-permanente (meses o años). Se debe repetir para ser permanente.",
+                "rounds": None,
+                "upkeep": "muy alto",
+            }
 
 
 
@@ -395,23 +506,32 @@ def suggest_damage_or_heal(
     if mod_info.get("has_reducido", False):
         up = max(0, up - 1)
 
-    # 4) Tier → escala ligera
+    # 4) Selección del dado según modo del precepto + tier
+    dice_base = get_base_die_for_precept(precept_id, effect_type)
+
     total_dice = max(1, up + (tier - 1))
 
-    # 5) Multiplicado → SOLO instancias, no rango
+    # 5) Instancias (por Multiplicado)
     instances = max(1, mod_info.get("multiplicado_instances", 1))
     dice_per_instance = max(1, total_dice // instances)
 
-    # 6) Persistente → repartir por rondas (DoT/HoT)
-    per_round = None
-    rounds = None
-    duration_text = "Instantáneo"
 
-    if mod_info.get("has_persistente", False) or long_duration:
-        rounds = 1 + max(0, mod_info.get("potenciado_rank", 0))
-        rounds = min(rounds, 4)
+    # 6) Persistente → repartir por rondas (DoT/HoT)
+    duration_profile = _suggest_duration_profile(
+        effect_type=effect_type,
+        tier=tier,
+        persistente_rank=mod_info.get("persistente_rank", 0),
+        potenciado_rank=mod_info.get("potenciado_rank", 0),
+        long_duration=long_duration,
+    )
+
+    per_round = None
+    rounds = duration_profile.get("rounds")
+    duration_text = duration_profile["text"]
+
+    # Solo tiene sentido hablar de “por ronda” si la duración es de rondas
+    if duration_profile["kind"] == "ROUNDS" and rounds:
         per_round = max(1, math.ceil(dice_per_instance / rounds))
-        duration_text = f"Persistente ~{rounds} rondas"
 
     # Área
     area = _suggest_area_description(
@@ -428,32 +548,37 @@ def suggest_damage_or_heal(
 
     if per_round is not None and rounds is not None:
         summary = (
-            f"{eff_kind.title()}: {per_round}d6 por ronda"
+            f"{eff_kind.title()} sugerida: {per_round}d{dice_base} por ronda"
             f" durante ~{rounds} rondas ({element_name}), "
             f"{instances} instancia(s), área: {area['description']}"
         )
     else:
         summary = (
-            f"{eff_kind.title()}: {dice_per_instance}d6"
+            f"{eff_kind.title()} sugerida: {dice_per_instance}d{dice_base}"
             f" ({element_name}), {instances} instancia(s), "
-            f"área: {area['description']}"
+            f"{area['description']} — {duration_text}"
         )
+
 
     return {
         "type": effect_type,  # 'damage' o 'heal' directo
         "summary": summary,
         "details": {
             "tier": tier,
-            "total_dice_d6": total_dice,
-            "dice_per_instance_d6": dice_per_instance,
+            "total_dice": total_dice,
+            "dice_per_instance": dice_per_instance,
             "instances": instances,
             "persistent": per_round is not None and rounds is not None,
-            "dice_per_round_d6": per_round,
+            "dice_per_round": per_round,
             "rounds": rounds,
             "element": element_name,
             "area": area,
             "duration": duration_text,
             "intent": intent,
+            "duration_kind": duration_profile["kind"],
+            "upkeep": duration_profile["upkeep"],
+            "duration_narrative": duration_text,
+
         },
     }
 
@@ -497,10 +622,15 @@ def suggest_control_effect(
 
 
     # Duración en rondas
-    rounds = severity
-    if long_duration or mod_info["has_persistente"]:
-        rounds += 1
-    rounds = min(rounds, 6)
+    duration_profile = _suggest_duration_profile(
+        effect_type="control",
+        tier=tier,
+        persistente_rank=mod_info.get("persistente_rank", 0),
+        potenciado_rank=mod_info.get("potenciado_rank", 0),
+        long_duration=long_duration,
+    )
+
+
 
     # Tipo de control aproximado
     control_kind = "general"
@@ -516,9 +646,10 @@ def suggest_control_effect(
     # DC sugerida
     dc = 10 + tier  # luego le sumas bonificador del regidor en mesa
 
+    rounds = duration_profile.get("rounds")
     summary = (
-        f"Efecto de control {control_kind} de severidad {severity} "
-        f"durante ~{rounds} rondas. Salvación sugerida DC {dc} + HOP."
+        f"Efecto de control {control_kind} de severidad {severity}. "
+        f"{duration_profile['text']} Salvación sugerida DC {dc} + HOP."
     )
 
     return {
@@ -530,7 +661,9 @@ def suggest_control_effect(
             "rounds": rounds,
             "control_kind": control_kind,
             "suggested_dc_base": dc,
-            "persistent": mod_info["has_persistente"] or long_duration,
+            "duration_kind": duration_profile["kind"],
+            "duration_narrative": duration_profile["text"],
+            "upkeep": duration_profile["upkeep"],
         },
     }
 
@@ -558,14 +691,25 @@ def suggest_utility_effect(
 
 
     # Duración narrativa
-    if mod_info["has_persistente"] or long_duration:
-        dur = "varios minutos"
-    else:
-        dur = "instantáneo o unos segundos"
+    duration_profile = _suggest_duration_profile(
+        effect_type="utility",
+        tier=tier,
+        persistente_rank=mod_info.get("persistente_rank", 0),
+        potenciado_rank=mod_info.get("potenciado_rank", 0),
+        long_duration=long_duration,
+    )
+
+    area = _suggest_area_description(
+        shape=mod_info.get("shape"),
+        tier=tier,
+        extendido_rank=mod_info.get("extendido_rank", 0),
+    )
+
+    element_name = NUMEN[numen_ids[0]]["name"] if numen_ids else "Genérico"
 
     summary = (
-        f"Efecto utilitario de categoría {category.lower()} ligado a {element_name}, "
-        f"área: {area['description']}, duración {dur}."
+        f"Efecto utilitario de tipo {category.lower()} ligado a {element_name}, "
+        f"área: {area['description']}. {duration_profile['text']}"
     )
 
     return {
@@ -576,9 +720,12 @@ def suggest_utility_effect(
             "category": category,
             "element": element_name,
             "area": area,
-            "duration_narrative": dur,
+            "duration_kind": duration_profile["kind"],
+            "duration_narrative": duration_profile["text"],
+            "upkeep": duration_profile["upkeep"],
         },
     }
+
 
 
 # ---------- Simple JSON "DB" helpers ----------

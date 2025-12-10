@@ -428,7 +428,7 @@ for fam in families:
         extra = 0
         if mid == "INTENSIDAD_POTENCIADO":
             rank = st.sidebar.slider(
-                "Rango de Potenciado",
+                "Nivel de Potenciado",
                 min_value=1,
                 max_value=mod.get("max_rank", 3),
                 value=1,
@@ -451,6 +451,16 @@ for fam in families:
                 value=1,
                 key=f"rank_{mid}",
             )
+        if mid == "DURACION_PERSISTENTE":
+            rank = st.sidebar.slider(
+                "Rango de Persistencia",
+                min_value=1,
+                max_value=mod.get("max_rank", 3),
+                value=1,
+                key=f"rank_{mid}",
+            )
+        else:
+            rank = 1
 
         selected_modifiers.append(
             ModifierSelection(
