@@ -340,24 +340,450 @@ def inject_global_css():
     """
     st.markdown(css, unsafe_allow_html=True)
 
+def inject_numen_effects_css():
+    css = """
+    <style>
+    /* ===========================
+       ANIMACIONES BASE
+       =========================== */
+
+    @keyframes numen-fire-flicker {
+        0%   { transform: translateY(-2px) scale(1.00); opacity: 0.8; }
+        30%  { transform: translateY(-3px) scale(1.02); opacity: 1.0; }
+        60%  { transform: translateY(-1px) scale(0.99); opacity: 0.9; }
+        100% { transform: translateY(-2px) scale(1.01); opacity: 1.0; }
+    }
+
+    @keyframes numen-ice-shards {
+        0%   { transform: translateX(0) skewX(0deg); opacity: 0.7; }
+        50%  { transform: translateX(2px) skewX(-1.5deg); opacity: 1.0; }
+        100% { transform: translateX(-1px) skewX(1.5deg); opacity: 0.85; }
+    }
+
+    @keyframes numen-space-warp {
+        0%   { transform: scale(1.00); opacity: 0.7; }
+        50%  { transform: scale(1.04); opacity: 1.0; }
+        100% { transform: scale(1.00); opacity: 0.7; }
+    }
+
+    @keyframes numen-vital-pulse {
+        0%   { transform: scale(0.98); opacity: 0.5; }
+        50%  { transform: scale(1.05); opacity: 0.95; }
+        100% { transform: scale(0.98); opacity: 0.5; }
+    }
+
+    @keyframes numen-shadow-breathe {
+        0%   { opacity: 0.15; }
+        50%  { opacity: 0.45; }
+        100% { opacity: 0.15; }
+    }
+
+    @keyframes numen-default-glow {
+        0%   { opacity: 0.1; }
+        50%  { opacity: 0.35; }
+        100% { opacity: 0.1; }
+    }
+
+    @keyframes numen-weave {
+        0%   { background-position: 0 0, 0 0; }
+        100% { background-position: 20px 20px, -20px -20px; }
+    }
+
+    @keyframes numen-rage-quake {
+        0%   { transform: translate(0, -2px); }
+        20%  { transform: translate(1px, -3px); }
+        40%  { transform: translate(-2px, -1px); }
+        60%  { transform: translate(2px, -4px); }
+        80%  { transform: translate(-1px, -3px); }
+        100% { transform: translate(0, -2px); }
+    }
+
+    @keyframes numen-drip {
+        0%   { background-position: 0 0; }
+        100% { background-position: 0 20px; }
+    }
+
+    @keyframes numen-wave-h {
+        0%   { background-position: 0 0; }
+        100% { background-position: 40px 0; }
+    }
+
+    @keyframes numen-zap {
+        0%   { opacity: 0.1; }
+        25%  { opacity: 0.8; }
+        50%  { opacity: 0.2; }
+        75%  { opacity: 0.9; }
+        100% { opacity: 0.1; }
+    }
+
+    @keyframes numen-spiral {
+        0%   { transform: rotate(0deg) scale(0.9); opacity: 0.2; }
+        50%  { transform: rotate(180deg) scale(1.05); opacity: 0.6; }
+        100% { transform: rotate(360deg) scale(0.9); opacity: 0.2; }
+    }
+
+    /* --------- BASE POR DEFECTO PARA CUALQUIER NUMEN --------- */
+    details.numen-card-full:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 0 16px rgba(0,0,0,0.8);
+    }
+
+    details.numen-card-full::after {
+        content: "";
+        position: absolute;
+        inset: -20%;
+        opacity: 0;
+        pointer-events: none;
+        mix-blend-mode: screen;
+    }
+
+    details.numen-card-full:hover::after {
+        opacity: 1;
+        animation: numen-default-glow 3s linear infinite;
+        background:
+          radial-gradient(circle at 10% 0%, rgba(255,255,255,0.08), transparent 55%),
+          radial-gradient(circle at 90% 100%, rgba(255,255,255,0.05), transparent 60%);
+    }
+
+    /* =====================================================
+       NUMEN ESPECÍFICOS
+       ===================================================== */
+
+    /* IGNIS — chispas / vibración de fuego */
+    details.numen-card-full.numen-ignis:hover {
+        border-color: #FF4500;
+        box-shadow: 0 0 22px #FF4500aa;
+    }
+    details.numen-card-full.numen-ignis:hover::after {
+        animation: numen-fire-flicker 0.9s infinite alternate;
+        background:
+          radial-gradient(circle at 20% 80%, rgba(255, 200, 150, 0.0) 0, rgba(255, 200, 150, 0.7) 4px, transparent 10px),
+          radial-gradient(circle at 40% 100%, rgba(255, 120, 0, 0.0) 0, rgba(255, 120, 0, 0.9) 3px, transparent 9px),
+          radial-gradient(circle at 75% 85%, rgba(255, 80, 0, 0.0) 0, rgba(255, 80, 0, 0.8) 3px, transparent 10px);
+    }
+
+    /* CRYBORENS — shards de hielo */
+    details.numen-card-full.numen-cryoborens:hover {
+        border-color: #00CED1;
+        box-shadow: 0 0 20px #00CED1aa;
+    }
+    details.numen-card-full.numen-cryoborens:hover::after {
+        animation: numen-ice-shards 1.4s infinite ease-in-out;
+        background:
+          repeating-linear-gradient(
+            -35deg,
+            rgba(200, 255, 255, 0.12),
+            rgba(200, 255, 255, 0.12) 4px,
+            transparent 4px,
+            transparent 10px
+          );
+    }
+
+    /* LIMINIS — warp espacial */
+    details.numen-card-full.numen-liminis:hover {
+        border-color: #D4AF37;
+        box-shadow: 0 0 20px #D4AF37aa;
+    }
+    details.numen-card-full.numen-liminis:hover::after {
+        animation: numen-space-warp 2.4s infinite ease-in-out;
+        background:
+          radial-gradient(circle at 50% 50%, rgba(212, 175, 55, 0.28), transparent 55%),
+          radial-gradient(circle at 50% 50%, rgba(212, 175, 55, 0.18), transparent 75%);
+    }
+
+    /* VITALIS — pulso de vida */
+    details.numen-card-full.numen-vitalis:hover {
+        border-color: #32CD32;
+        box-shadow: 0 0 22px #32CD32aa;
+    }
+    details.numen-card-full.numen-vitalis:hover::after {
+        animation: numen-vital-pulse 1.3s infinite ease-in-out;
+        background:
+          radial-gradient(circle at 50% 50%, rgba(50, 205, 50, 0.35), transparent 60%),
+          radial-gradient(circle at 20% 20%, rgba(120, 255, 120, 0.25), transparent 55%);
+    }
+
+    /* IGNOTA — velos móviles */
+    details.numen-card-full.numen-ignota:hover {
+        border-color: #E44192;
+        box-shadow: 0 0 20px #E44192aa;
+    }
+    details.numen-card-full.numen-ignota:hover::after {
+        animation: numen-weave 4s linear infinite;
+        background:
+          repeating-linear-gradient(
+            15deg,
+            rgba(228, 65, 146, 0.12),
+            rgba(228, 65, 146, 0.12) 10px,
+            transparent 10px,
+            transparent 20px
+          ),
+          repeating-linear-gradient(
+            -25deg,
+            rgba(90, 10, 60, 0.25),
+            rgba(90, 10, 60, 0.25) 8px,
+            transparent 8px,
+            transparent 18px
+          );
+    }
+
+    /* TELLURIS — estratos de roca */
+    details.numen-card-full.numen-telluris:hover {
+        border-color: #813600;
+        box-shadow: 0 0 18px #813600aa;
+    }
+    details.numen-card-full.numen-telluris:hover::after {
+        animation: numen-ice-shards 2.2s infinite ease-in-out;
+        background:
+          repeating-linear-gradient(
+            90deg,
+            rgba(90, 40, 10, 0.35),
+            rgba(90, 40, 10, 0.35) 5px,
+            rgba(40, 15, 5, 0.2) 5px,
+            rgba(40, 15, 5, 0.2) 12px
+          );
+    }
+
+    /* METALLUM — reflejos metálicos */
+    details.numen-card-full.numen-metallum:hover {
+        border-color: #0047AB;
+        box-shadow: 0 0 22px #0047ABaa;
+    }
+    details.numen-card-full.numen-metallum:hover::after {
+        animation: numen-wave-h 2.8s linear infinite;
+        background:
+          linear-gradient(
+            120deg,
+            rgba(200, 220, 255, 0.0) 0%,
+            rgba(200, 220, 255, 0.4) 35%,
+            rgba(200, 220, 255, 0.0) 70%
+          );
+        background-size: 200% 100%;
+    }
+
+    /* ASTRALIS — destellos estelares */
+    details.numen-card-full.numen-astralis:hover {
+        border-color: #FCDA90;
+        box-shadow: 0 0 22px #FCDA90aa;
+    }
+    details.numen-card-full.numen-astralis:hover::after {
+        animation: numen-default-glow 2.5s ease-in-out infinite;
+        background:
+          radial-gradient(circle at 10% 20%, rgba(255,255,220,0.6), transparent 55%),
+          radial-gradient(circle at 75% 80%, rgba(255,255,180,0.5), transparent 55%),
+          radial-gradient(circle at 50% 50%, rgba(255,255,255,0.35), transparent 60%);
+    }
+
+    /* HIERATIA — halo sagrado */
+    details.numen-card-full.numen-hieratia:hover {
+        border-color: #6CA6FF;
+        box-shadow: 0 0 22px #6CA6FFaa;
+    }
+    details.numen-card-full.numen-hieratia:hover::after {
+        animation: numen-vital-pulse 2.0s infinite ease-in-out;
+        background:
+          radial-gradient(circle at 50% 50%, rgba(108,166,255,0.5), transparent 65%),
+          radial-gradient(circle at 50% 50%, rgba(180,210,255,0.4), transparent 80%);
+    }
+
+    /* UMBRA — respiración de sombras */
+    details.numen-card-full.numen-umbra:hover {
+        border-color: #2F2F2F;
+        box-shadow: 0 0 24px #000000dd;
+    }
+    details.numen-card-full.numen-umbra:hover::after {
+        animation: numen-shadow-breathe 2.8s infinite ease-in-out;
+        background:
+          radial-gradient(circle at 50% 20%, rgba(0, 0, 0, 0.7), transparent 70%),
+          radial-gradient(circle at 10% 90%, rgba(0, 0, 0, 0.6), transparent 65%),
+          radial-gradient(circle at 90% 80%, rgba(0, 0, 0, 0.6), transparent 65%);
+    }
+
+    /* CHRONENS — tics de reloj */
+    details.numen-card-full.numen-chronens:hover {
+        border-color: #C0C0C0;
+        box-shadow: 0 0 20px #C0C0C0aa;
+    }
+    details.numen-card-full.numen-chronens:hover::after {
+        animation: numen-spiral 6s linear infinite;
+        background:
+          conic-gradient(
+            from 0deg,
+            rgba(192,192,192,0.0) 0deg,
+            rgba(192,192,192,0.4) 20deg,
+            rgba(192,192,192,0.0) 40deg,
+            rgba(192,192,192,0.4) 60deg,
+            rgba(192,192,192,0.0) 80deg
+          );
+    }
+
+    /* LIKA — entramado de lazos */
+    details.numen-card-full.numen-lika:hover {
+        border-color: #FFFFFF;
+        box-shadow: 0 0 20px #FFFFFFaa;
+    }
+    details.numen-card-full.numen-lika:hover::after {
+        animation: numen-weave 3.2s linear infinite;
+        background:
+          repeating-linear-gradient(
+            45deg,
+            rgba(255,255,255,0.15),
+            rgba(255,255,255,0.15) 6px,
+            transparent 6px,
+            transparent 14px
+          ),
+          repeating-linear-gradient(
+            -45deg,
+            rgba(200,200,255,0.1),
+            rgba(200,200,255,0.1) 6px,
+            transparent 6px,
+            transparent 14px
+          );
+    }
+
+    /* MITAUNA — sacudida de furia */
+    details.numen-card-full.numen-mitauna:hover {
+        border-color: #FF0000;
+        box-shadow: 0 0 24px #FF0000aa;
+    }
+    details.numen-card-full.numen-mitauna:hover::after {
+        animation: numen-rage-quake 0.5s infinite;
+        background:
+          radial-gradient(circle at 50% 50%, rgba(255,0,0,0.35), transparent 70%);
+    }
+
+    /* AHMAR — goteo de sangre */
+    details.numen-card-full.numen-ahmar:hover {
+        border-color: #B22222;
+        box-shadow: 0 0 22px #B22222aa;
+    }
+    details.numen-card-full.numen-ahmar:hover::after {
+        animation: numen-drip 1.8s linear infinite;
+        background:
+          repeating-linear-gradient(
+            180deg,
+            rgba(178,34,34,0.4),
+            rgba(178,34,34,0.4) 8px,
+            transparent 8px,
+            transparent 16px
+          );
+        background-size: 100% 40px;
+    }
+
+    /* AETHERIS — ondas de aire */
+    details.numen-card-full.numen-aetheris:hover {
+        border-color: #68D6B0;
+        box-shadow: 0 0 22px #68D6B0aa;
+    }
+    details.numen-card-full.numen-aetheris:hover::after {
+        animation: numen-wave-h 3.3s linear infinite;
+        background:
+          repeating-linear-gradient(
+            0deg,
+            rgba(104,214,176,0.25),
+            rgba(104,214,176,0.25) 4px,
+            transparent 4px,
+            transparent 10px
+          );
+        background-size: 60px 100%;
+    }
+
+    /* RAIZENS — rayos */
+    details.numen-card-full.numen-raizens:hover {
+        border-color: #FFD700;
+        box-shadow: 0 0 24px #FFD700cc;
+    }
+    details.numen-card-full.numen-raizens:hover::after {
+        animation: numen-zap 1.1s linear infinite;
+        background:
+          repeating-linear-gradient(
+            -60deg,
+            rgba(255,215,0,0.9),
+            rgba(255,215,0,0.9) 2px,
+            transparent 2px,
+            transparent 10px
+          );
+    }
+
+    /* AVAZAX — ondas de sonido */
+    details.numen-card-full.numen-avazax:hover {
+        border-color: #A47DFF;
+        box-shadow: 0 0 22px #A47DFFaa;
+    }
+    details.numen-card-full.numen-avazax:hover::after {
+        animation: numen-wave-h 2.0s linear infinite;
+        background:
+          radial-gradient(circle at 10% 50%, rgba(164,125,255,0.35), transparent 55%),
+          radial-gradient(circle at 70% 50%, rgba(164,125,255,0.25), transparent 55%);
+        background-size: 140% 100%;
+    }
+
+    /* MORTIS — neblina venenosa */
+    details.numen-card-full.numen-mortis:hover {
+        border-color: #00FF80;
+        box-shadow: 0 0 24px #00FF80bb;
+    }
+    details.numen-card-full.numen-mortis:hover::after {
+        animation: numen-shadow-breathe 3.5s infinite ease-in-out;
+        background:
+          radial-gradient(circle at 30% 30%, rgba(0,255,128,0.45), transparent 60%),
+          radial-gradient(circle at 70% 70%, rgba(0,180,90,0.35), transparent 70%);
+    }
+
+    /* ONIRIANS — ondas oníricas */
+    details.numen-card-full.numen-onirians:hover {
+        border-color: #5D67C0;
+        box-shadow: 0 0 22px #5D67C0aa;
+    }
+    details.numen-card-full.numen-onirians:hover::after {
+        animation: numen-space-warp 3.0s ease-in-out infinite;
+        background:
+          repeating-radial-gradient(
+            circle at 50% 50%,
+            rgba(93,103,192,0.3),
+            rgba(93,103,192,0.3) 10px,
+            transparent 10px,
+            transparent 20px
+          );
+    }
+
+    /* NATURAE — brotes verdes */
+    details.numen-card-full.numen-naturae:hover {
+        border-color: #ACAF04;
+        box-shadow: 0 0 22px #ACAF04aa;
+    }
+    details.numen-card-full.numen-naturae:hover::after {
+        animation: numen-vital-pulse 2.6s infinite ease-in-out;
+        background:
+          radial-gradient(circle at 20% 80%, rgba(172,175,4,0.45), transparent 60%),
+          radial-gradient(circle at 70% 20%, rgba(190,220,70,0.4), transparent 65%);
+    }
+
+    /* PSYKONENS — espiral mental */
+    details.numen-card-full.numen-psykonens:hover {
+        border-color: #7801FF;
+        box-shadow: 0 0 24px #7801FFaa;
+    }
+    details.numen-card-full.numen-psykonens:hover::after {
+        animation: numen-spiral 5.0s linear infinite;
+        background:
+          conic-gradient(
+            from 0deg,
+            rgba(120,1,255,0.0) 0deg,
+            rgba(120,1,255,0.5) 60deg,
+            rgba(120,1,255,0.0) 120deg,
+            rgba(120,1,255,0.5) 180deg,
+            rgba(120,1,255,0.0) 240deg,
+            rgba(120,1,255,0.5) 300deg,
+            rgba(120,1,255,0.0) 360deg
+          );
+    }
+    </style>
+    """
+    st.markdown(css, unsafe_allow_html=True)
 
 
-def inject_numen_hover_css():
-    # Efectos diferenciados por Numen (hover)
-    effects = [
-        "transform: translateY(-3px) scale(1.03); box-shadow: 0 0 18px {color};",
-        "transform: translateY(-2px) scale(1.02); box-shadow: 0 0 4px {color}, 0 0 16px {color};",
-        "transform: translateY(-2px); box-shadow: 0 0 0 2px {color}; filter: saturate(130%);",
-        "transform: translateY(-2px) scale(1.02) rotate(-0.5deg); box-shadow: 0 0 10px {color};",
-    ]
-    parts = ["<style>"]
-    for i, (nid, n) in enumerate(NUMEN.items()):
-        color = n.get("color_hex", "#FFFFFF")
-        effect = effects[i % len(effects)].replace("{color}", color)
-        class_name = f"numen-{nid.lower()}"
-        parts.append(f".numen-card.{class_name}:hover {{{effect} border-color:{color};}}")
-    parts.append("</style>")
-    st.markdown("\n".join(parts), unsafe_allow_html=True)
+
 
 
 # Colores por categoría de Precepto
@@ -451,8 +877,10 @@ def render_numen_full_card(nid: str):
     tags = ", ".join(n.get("tags", [])) or "—"
     desc = n.get("description", "_Sin descripción_")
 
+    slug = f"numen-{nid.lower()}"  # <- clase específica por Numen
+
     html = f"""
-    <details class="numen-card-full" style="border-color:{color};background:{bg};">
+    <details class="numen-card-full {slug}" style="border-color:{color};background:{bg};">
       <summary>
         <div class="numen-header-title">{name}</div>
         <div class="numen-header-sub">{base_name}</div>
@@ -464,6 +892,7 @@ def render_numen_full_card(nid: str):
     </details>
     """
     st.markdown(html, unsafe_allow_html=True)
+
 
 
 def render_animated_ordinance_card(o, effect_type: str, mechanics_summary: str):
@@ -539,7 +968,7 @@ def render_animated_ordinance_card(o, effect_type: str, mechanics_summary: str):
 
 
 inject_global_css()
-inject_numen_hover_css()
+inject_numen_effects_css()
 
 
 def render_numen_card(nid: str, compact: bool = False):
