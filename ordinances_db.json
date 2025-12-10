@@ -1,0 +1,70 @@
+{
+  "ORD_000001": {
+    "id": "ORD_000001",
+    "canonical_key": "ILUMINAR|ASTRALIS|[ALCANCE_EXTENDIDO,FORMA_AURA]",
+    "name": "Luz del Guía",
+    "precept_id": "ILUMINAR",
+    "numen_ids": [
+      "ASTRALIS"
+    ],
+    "modifiers": [
+      {
+        "modifier_id": "FORMA_AURA",
+        "rank": 1,
+        "extra_instances": 0
+      },
+      {
+        "modifier_id": "ALCANCE_EXTENDIDO",
+        "rank": 1,
+        "extra_instances": 0
+      }
+    ],
+    "mechanical": {
+      "narrative": "Un aura de luz te envuelve, iluminando todo a a tu alrededor ",
+      "notes": "30 pies de luz"
+    },
+    "cost": {
+      "complexity_points": 4,
+      "tier": 2
+    },
+    "tier": 2,
+    "meta": {
+      "created_by": "Manu",
+      "source": "Caminos - Sixtrangers"
+    }
+  },
+  "ORD_000002": {
+    "id": "ORD_000002",
+    "canonical_key": "SELLAR|CRYOBORENS|[DURACION_PERSISTENTE,FORMA_ESFERA]",
+    "name": "Crisálida helada",
+    "precept_id": "SELLAR",
+    "numen_ids": [
+      "CRYOBORENS"
+    ],
+    "modifiers": [
+      {
+        "modifier_id": "FORMA_ESFERA",
+        "rank": 1,
+        "extra_instances": 0
+      },
+      {
+        "modifier_id": "DURACION_PERSISTENTE",
+        "rank": 1,
+        "extra_instances": 0
+      }
+    ],
+    "mechanical": {
+      "narrative": "Un caparazón de hielo recubre al objetivo, encapsulándolo en estásis.",
+      "notes": "Efecto de control bloqueo / estructura de severidad 2 durante ~3 rondas. Salvación sugerida DC 12."
+    },
+    "cost": {
+      "complexity_points": 4,
+      "tier": 2
+    },
+    "tier": 2,
+    "meta": {
+      "created_by": "Manu",
+      "source": "Caminos - Sixtrangers"
+    }
+  }
+}

@@ -13,20 +13,352 @@ from arcana_core import (
     save_ordinances,
     find_by_canonical_key,
     next_ordinance_id,
+    suggest_mechanics,   
 )
+
 
 st.set_page_config(page_title="A.R.C.A.N.A. Constructor", layout="wide")
 
 # Load DB
 ORDINANCES = load_ordinances()
 
-st.title("A.R.C.A.N.A. — Constructor de Ordenanzas")
+st.title("A.R.C.A.N.A. — Sistema de Ordenanzas")
+
+# -------------------------------------------------------------------
+# MODE SWITCH
+# -------------------------------------------------------------------
+st.sidebar.markdown("## Modo")
+mode = st.sidebar.radio(
+    "Selecciona modo de trabajo",
+    [
+        "Constructor de Ordenanzas",
+        "Explorador de Preceptos",
+        "Explorador de Numen",
+        "Explorador de Modificadores",
+        "Grimorio de Ordenanzas",
+    ],
+)
+
+# ===================================================================
+# MODO: EXPLORADOR DE PRECEPTOS
+# ===================================================================
+if mode == "Explorador de Preceptos":
+    st.header("Explorador de Preceptos (Raíces)")
+
+    # Categorías dinámicas
+    categories = sorted(
+        {p.get("category", "Sin categoría") for p in PRECEPTS.values()}
+    )
+    categories.insert(0, "Todos")
+
+    col_filters = st.columns([2, 2, 3])
+    with col_filters[0]:
+        category_filter = st.selectbox(
+            "Filtrar por categoría:",
+            options=categories,
+            index=0,
+        )
+    with col_filters[1]:
+        search_text = st.text_input(
+            "Buscar por nombre/verbo:",
+            value="",
+            placeholder="Ej: Encender, Curar...",
+        )
+
+    # Filtro
+    filtered_ids = []
+    for pid, p in PRECEPTS.items():
+        if category_filter != "Todos" and p.get("category") != category_filter:
+            continue
+        if search_text:
+            t = search_text.lower()
+            if t not in p["verb"].lower() and t not in p.get(
+                "description", ""
+            ).lower():
+                continue
+        filtered_ids.append(pid)
+
+    if not filtered_ids:
+        st.info("No se han encontrado preceptos con esos filtros.")
+    else:
+        st.write(f"Se han encontrado **{len(filtered_ids)}** preceptos.")
+        for pid in sorted(filtered_ids):
+            p = PRECEPTS[pid]
+            with st.expander(f"{p['verb']} ({pid}) — {p.get('category', '')}"):
+                st.markdown(f"**Verbo:** `{p['verb']}`")
+                st.markdown(f"**ID:** `{pid}`")
+                st.markdown(f"**Categoría:** `{p.get('category', '—')}`")
+
+                pref_numen = p.get("preferred_numen_ids", [])
+                if pref_numen:
+                    st.markdown("**Numen preferente:**")
+                    cols_numen = st.columns(len(pref_numen))
+                    for c, nid in zip(cols_numen, pref_numen):
+                        if nid in NUMEN:
+                            n = NUMEN[nid]
+                            with c:
+                                st.markdown(
+                                    f"<div style='padding:0.4rem;border-radius:6px;"
+                                    f"border:1px solid #444;background:{n['color_hex']}22;'>"
+                                    f"<strong>{n['display_name']}</strong><br>"
+                                    f"<small>{', '.join(n['tags'])}</small>"
+                                    f"</div>",
+                                    unsafe_allow_html=True,
+                                )
+                        else:
+                            c.write(f"- {nid} (definir en NUMEN)")
+
+                st.markdown("**Descripción:**")
+                st.write(p.get("description", "_Sin descripción_"))
+
+                ex = p.get("example_ordinances", [])
+                if ex:
+                    st.markdown("**Ejemplos de Ordenanzas:**")
+                    for e in ex:
+                        st.markdown(f"- {e}")
+
+                st.markdown("**Datos crudos:**")
+                st.json(p)
+
+    st.stop()
+
+# ===================================================================
+# MODO: EXPLORADOR DE NUMEN
+# ===================================================================
+if mode == "Explorador de Numen":
+    st.header("Explorador de Numen")
+
+    # Tags dinámicos
+    all_tags = sorted(
+        {tag for n in NUMEN.values() for tag in n.get("tags", [])}
+    )
+    all_tags.insert(0, "Todos")
+
+    col_filters = st.columns([2, 2, 3])
+    with col_filters[0]:
+        tag_filter = st.selectbox(
+            "Filtrar por tag:",
+            options=all_tags,
+            index=0,
+        )
+    with col_filters[1]:
+        search_text = st.text_input(
+            "Buscar por nombre:",
+            value="",
+            placeholder="Ej: Ignis, Umbra...",
+        )
+
+    filtered_ids = []
+    for nid, n in NUMEN.items():
+        if tag_filter != "Todos" and tag_filter not in n.get("tags", []):
+            continue
+        if search_text:
+            t = search_text.lower()
+            if t not in n["name"].lower() and t not in n["display_name"].lower():
+                continue
+        filtered_ids.append(nid)
+
+    if not filtered_ids:
+        st.info("No se han encontrado Numen con esos filtros.")
+    else:
+        st.write(f"Se han encontrado **{len(filtered_ids)}** Numen.")
+        cols = st.columns(3)
+        for i, nid in enumerate(sorted(filtered_ids)):
+            n = NUMEN[nid]
+            col = cols[i % 3]
+            with col:
+                st.markdown(
+                    f"<div style='margin-bottom:0.8rem;padding:0.6rem;border-radius:10px;"
+                    f"border:1px solid #444;background:{n['color_hex']}33;'>"
+                    f"<strong>{n['display_name']}</strong><br>"
+                    f"<code>{nid}</code><br>"
+                    f"<small>{', '.join(n.get('tags', []))}</small>"
+                    f"</div>",
+                    unsafe_allow_html=True,
+                )
+                with st.expander(f"Detalles de {n['name']}", expanded=False):
+                    st.write(n.get("description", "_Sin descripción_"))
+                    st.json(n)
+
+    st.stop()
+
+# ===================================================================
+# MODO: EXPLORADOR DE MODIFICADORES
+# ===================================================================
+if mode == "Explorador de Modificadores":
+    st.header("Explorador de Modificadores / Partículas")
+
+    families = sorted({m["family"] for m in MODIFIERS.values()})
+    families.insert(0, "Todas")
+
+    col_filters = st.columns([2, 2, 3])
+    with col_filters[0]:
+        fam_filter = st.selectbox(
+            "Filtrar por familia:",
+            options=families,
+            index=0,
+        )
+    with col_filters[1]:
+        search_text = st.text_input(
+            "Buscar por nombre:",
+            value="",
+            placeholder="Ej: Cono, Persistente...",
+        )
+
+    filtered_ids = []
+    for mid, m in MODIFIERS.items():
+        if fam_filter != "Todas" and m["family"] != fam_filter:
+            continue
+        if search_text:
+            t = search_text.lower()
+            if t not in m["name"].lower() and t not in m.get(
+                "description", ""
+            ).lower():
+                continue
+        filtered_ids.append(mid)
+
+    if not filtered_ids:
+        st.info("No se han encontrado modificadores con esos filtros.")
+    else:
+        st.write(f"Se han encontrado **{len(filtered_ids)}** modificadores.")
+        for mid in sorted(filtered_ids):
+            m = MODIFIERS[mid]
+            with st.expander(f"{m['name']} ({mid}) — {m['family']}"):
+                st.markdown(f"**Familia:** `{m['family']}`")
+                st.markdown("**Descripción:**")
+                st.write(m.get("description", "_Sin descripción_"))
+                st.markdown("**Costes (según modelo actual):**")
+                st.json(
+                    {
+                        "base_cost": m.get("base_cost"),
+                        "rank_cost": m.get("rank_cost"),
+                        "extra_long_duration_cost": m.get(
+                            "extra_long_duration_cost"
+                        ),
+                        "per_extra_instance_cost": m.get(
+                            "per_extra_instance_cost"
+                        ),
+                        "cost_modifier_total": m.get("cost_modifier_total"),
+                    }
+                )
+                st.markdown("**Tags:** " + ", ".join(m.get("tags", [])))
+                st.markdown("**Datos crudos:**")
+                st.json(m)
+
+    st.stop()
+
+# ===================================================================
+# MODO: GRIMORIO DE ORDENANZAS
+# ===================================================================
+if mode == "Grimorio de Ordenanzas":
+    st.header("Grimorio de Ordenanzas")
+
+    if not ORDINANCES:
+        st.info("Aún no hay Ordenanzas registradas. Usa el Constructor para crear algunas.")
+        st.stop()
+
+    # Filtros: Numen, Precepto, Tier, texto
+    all_numen_ids = sorted({nid for o in ORDINANCES.values() for nid in o.numen_ids})
+    all_precepts = sorted({o.precept_id for o in ORDINANCES.values()})
+    all_tiers = sorted({o.tier for o in ORDINANCES.values()})
+
+    col_filters = st.columns(4)
+    with col_filters[0]:
+        numen_filter = st.multiselect(
+            "Filtrar por Numen:",
+            options=all_numen_ids,
+            format_func=lambda nid: NUMEN.get(nid, {}).get("display_name", nid),
+        )
+    with col_filters[1]:
+        precept_filter = st.multiselect(
+            "Filtrar por Precepto:",
+            options=all_precepts,
+            format_func=lambda pid: PRECEPTS.get(pid, {}).get("verb", pid),
+        )
+    with col_filters[2]:
+        tier_filter = st.multiselect(
+            "Filtrar por Tier:",
+            options=all_tiers,
+            default=all_tiers,
+        )
+    with col_filters[3]:
+        search_text = st.text_input(
+            "Buscar por nombre:",
+            value="",
+            placeholder="Ej: Llama Voraz...",
+        )
+
+    # Aplicar filtros
+    filtered = []
+    for o in ORDINANCES.values():
+        if numen_filter and not any(n in o.numen_ids for n in numen_filter):
+            continue
+        if precept_filter and o.precept_id not in precept_filter:
+            continue
+        if tier_filter and o.tier not in tier_filter:
+            continue
+        if search_text:
+            t = search_text.lower()
+            if t not in o.name.lower():
+                continue
+        filtered.append(o)
+
+    st.write(f"Se han encontrado **{len(filtered)}** Ordenanzas.")
+
+    # Ordenar por tier y nombre
+    filtered.sort(key=lambda x: (x.tier, x.name.lower()))
+
+    for o in filtered:
+        precept_name = PRECEPTS.get(o.precept_id, {}).get("verb", o.precept_id)
+        numen_names = [
+            NUMEN.get(nid, {}).get("name", nid) for nid in o.numen_ids
+        ]
+        with st.expander(
+            f"{o.name} (Tier {o.tier}) — {precept_name} + {', '.join(numen_names)}"
+        ):
+            st.markdown(f"**ID:** `{o.id}`")
+            st.markdown(f"**Clave canónica:** `{o.canonical_key}`")
+            st.markdown(f"**Precepto:** `{precept_name}`")
+            st.markdown(
+                "**Numen:** "
+                + ", ".join(
+                    NUMEN.get(nid, {}).get("display_name", nid)
+                    for nid in o.numen_ids
+                )
+            )
+
+            # Mostrar modificadores
+            if o.modifiers:
+                st.markdown("**Modificadores:**")
+                for sel in o.modifiers:
+                    m = MODIFIERS.get(sel.modifier_id, {})
+                    line = f"- {m.get('name', sel.modifier_id)}"
+                    if sel.rank != 1:
+                        line += f" (rango {sel.rank})"
+                    if sel.extra_instances > 0:
+                        line += f" · +{sel.extra_instances} instancias"
+                    st.markdown(line)
+            else:
+                st.markdown("**Modificadores:** ninguno.")
+
+            st.markdown("**Efecto mecánico:**")
+            st.json(o.mechanical)
+
+            st.markdown("**Coste:**")
+            st.json(o.cost)
+
+            st.markdown("**Metadatos:**")
+            st.json(o.meta)
+
+    st.stop()
+
+# ===================================================================
+# MODO: CONSTRUCTOR DE ORDENANZAS
+# ===================================================================
 
 # --- 1) Select Precept ---
-
 st.sidebar.header("1. Precepto (Raíz)")
 precept_options = list(PRECEPTS.keys())
-precept_labels = [f"{pid} – {PRECEPTS[pid]['verb']}" for pid in precept_options]
 precept_choice = st.sidebar.selectbox(
     "Elige un Precepto base:",
     options=precept_options,
@@ -34,6 +366,7 @@ precept_choice = st.sidebar.selectbox(
 )
 
 precept = PRECEPTS[precept_choice]
+st.header("Constructor de Ordenanzas")
 st.subheader(f"Precepto seleccionado: {precept['verb']}")
 st.markdown(precept["description"])
 
@@ -41,7 +374,6 @@ with st.expander("Detalles del Precepto"):
     st.json(precept, expanded=False)
 
 # --- 2) Select Numen ---
-
 st.sidebar.header("2. Numen (color/afinidad)")
 numen_ids = list(NUMEN.keys())
 
@@ -49,7 +381,7 @@ numen_multi_choice = st.sidebar.multiselect(
     "Selecciona uno o más Numen:",
     options=numen_ids,
     format_func=lambda nid: NUMEN[nid]["display_name"],
-    default=precept.get("preferred_numen_ids", [])[:1],  # default: preferente
+    default=precept.get("preferred_numen_ids", [])[:1],
 )
 
 if not numen_multi_choice:
@@ -71,10 +403,8 @@ for col, nid in zip(cols, numen_multi_choice):
         )
 
 # --- 3) Select Modifiers ---
-
 st.sidebar.header("3. Partículas / Modificadores")
 
-# Group modifiers by family for nicer UI
 families = ["FORMA", "ALCANCE_DURACION", "INTENCION", "INTENSIDAD"]
 selected_modifiers: List[ModifierSelection] = []
 
@@ -94,7 +424,6 @@ for fam in families:
 
     for mid in chosen_ids:
         mod = MODIFIERS[mid]
-        # Controls for rank / extra instances if relevant
         rank = 1
         extra = 0
         if mid == "INTENSIDAD_POTENCIADO":
@@ -130,7 +459,7 @@ long_duration = any(
     value=False,
 )
 
-# --- 4) Compute canonical key / complexity / tier ---
+# --- 4) Compute canonical key / complexity / tier / Sugerencia mecánica automática ---
 
 canonical_key = build_canonical_key(
     precept_id=precept_choice,
@@ -146,21 +475,39 @@ complexity = calculate_complexity(
 )
 tier = derive_tier(complexity)
 
+# Sugerencia mecánica automática (glutinante)
+mechanics_suggestion = suggest_mechanics(
+    precept_id=precept_choice,
+    numen_ids=numen_multi_choice,
+    modifiers=selected_modifiers,
+    complexity=complexity,
+    long_duration=long_duration,
+)
+
+
 st.markdown("---")
 st.header("Sintaxis y Coste de la Ordenanza")
 
-st.code(
-    f"{precept['verb']} + "
-    f\"{', '.join(NUMEN[nid]['name'] for nid in numen_multi_choice)}\" + "
-    f\"[{', '.join(MODIFIERS[m.modifier_id]['name'] for m in selected_modifiers)}]\",
-    language="text",
-)
+precept_part = precept["verb"]
+numen_part = ", ".join(NUMEN[nid]["name"] for nid in numen_multi_choice)
+mods_part = ", ".join(
+    MODIFIERS[m.modifier_id]["name"] for m in selected_modifiers
+) or "—"
+
+syntax_str = f"{precept_part} + {numen_part} + [{mods_part}]"
+st.code(syntax_str, language="text")
 
 st.write(f"**Clave canónica:** `{canonical_key}`")
 st.write(f"**Complejidad total:** {complexity}")
 st.write(f"**Tier sugerido:** {tier} (1=Aprendiz, 2=Adeptus, 3=Maestro, 4=Archirregidor)")
 
-# --- 5) DB lookup: does this ordinance already exist? ---
+st.subheader("Sugerencia mecánica automática")
+st.write(mechanics_suggestion.get("summary", ""))
+with st.expander("Detalles de la sugerencia", expanded=False):
+    st.json(mechanics_suggestion)
+
+
+# --- 5) DB lookup / save ---
 
 existing = find_by_canonical_key(ORDINANCES, canonical_key)
 
@@ -184,7 +531,7 @@ else:
         )
         mechanical_notes = st.text_area(
             "Efecto mecánico (stats, daño, área, etc.)",
-            value="Ej: 3d6 fuego en cono de 6m, Persistente 3 turnos.",
+            value=mechanics_suggestion.get("summary", "Ej: 3d6 fuego en cono de 6m, Persistente 3 turnos."),
         )
         created_by = st.text_input("Creado por", value="Manu")
         source = st.text_input("Fuente (campaña/sesión)", value="")
@@ -219,4 +566,11 @@ else:
                 )
                 ORDINANCES[oid] = ord_obj
                 save_ordinances(ORDINANCES)
-                st.success(f"Ordenanza '{name}' guardada con id {oid}. Recarga para verla en el grimorio.")
+                st.success(
+                    f"Ordenanza '{name}' guardada con id {oid}. "
+                    "Revisa el Grimorio para consultarla."
+                )
+
+
+
+
