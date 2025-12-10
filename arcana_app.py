@@ -117,8 +117,6 @@ if mode == "Explorador de Preceptos":
                     for e in ex:
                         st.markdown(f"- {e}")
 
-                st.markdown("**Datos crudos:**")
-                st.json(p)
 
     st.stop()
 
@@ -171,14 +169,12 @@ if mode == "Explorador de Numen":
                     f"<div style='margin-bottom:0.8rem;padding:0.6rem;border-radius:10px;"
                     f"border:1px solid #444;background:{n['color_hex']}33;'>"
                     f"<strong>{n['display_name']}</strong><br>"
-                    f"<code>{nid}</code><br>"
-                    f"<small>{', '.join(n.get('tags', []))}</small>"
+                    f"<small>{', '.join(n.get('tags', []))}</small><br>"
+                    f"<span style='font-size: 0.8rem;'>{n.get('short_description', n.get('description', '')[:90] + '...')}</span>"
                     f"</div>",
                     unsafe_allow_html=True,
                 )
-                with st.expander(f"Detalles de {n['name']}", expanded=False):
-                    st.write(n.get("description", "_Sin descripción_"))
-                    st.json(n)
+
 
     st.stop()
 
@@ -222,28 +218,35 @@ if mode == "Explorador de Modificadores":
     else:
         st.write(f"Se han encontrado **{len(filtered_ids)}** modificadores.")
         for mid in sorted(filtered_ids):
-            m = MODIFIERS[mid]
-            with st.expander(f"{m['name']} ({mid}) — {m['family']}"):
-                st.markdown(f"**Familia:** `{m['family']}`")
-                st.markdown("**Descripción:**")
-                st.write(m.get("description", "_Sin descripción_"))
-                st.markdown("**Costes (según modelo actual):**")
-                st.json(
-                    {
-                        "base_cost": m.get("base_cost"),
-                        "rank_cost": m.get("rank_cost"),
-                        "extra_long_duration_cost": m.get(
-                            "extra_long_duration_cost"
-                        ),
-                        "per_extra_instance_cost": m.get(
-                            "per_extra_instance_cost"
-                        ),
-                        "cost_modifier_total": m.get("cost_modifier_total"),
-                    }
-                )
-                st.markdown("**Tags:** " + ", ".join(m.get("tags", [])))
-                st.markdown("**Datos crudos:**")
-                st.json(m)
+                    m = MODIFIERS[mid]
+                    with st.expander(f"{m['name']}"):
+                        st.markdown(f"**Familia:** {m['family']}")
+                        st.markdown("**Descripción:**")
+                        st.write(m.get("description", "_Sin descripción_"))
+
+                        # Costes como texto, no JSON crudo
+                        st.markdown("**Costes (modelo actual):**")
+                        base_cost = m.get("base_cost")
+                        rank_cost = m.get("rank_cost")
+                        extra_long = m.get("extra_long_duration_cost")
+                        per_instance = m.get("per_extra_instance_cost")
+
+                        lines = []
+                        if base_cost is not None:
+                            lines.append(f"- Coste base: {base_cost}")
+                        if rank_cost is not None:
+                            lines.append(f"- Coste por rango: {rank_cost}")
+                        if extra_long is not None:
+                            lines.append(f"- Coste extra por duración larga: {extra_long}")
+                        if per_instance is not None:
+                            lines.append(f"- Coste por instancia adicional: {per_instance}")
+                        if not lines:
+                            lines.append("- Sin costes específicos definidos.")
+
+                        st.markdown("\n".join(lines))
+
+                        st.markdown("**Tags:** " + (", ".join(m.get("tags", [])) or "—"))
+
 
     st.stop()
 
@@ -341,14 +344,12 @@ if mode == "Grimorio de Ordenanzas":
             else:
                 st.markdown("**Modificadores:** ninguno.")
 
-            st.markdown("**Efecto mecánico:**")
-            st.json(o.mechanical)
+            st.markdown("**Descripción:**")
+            mech = o.mechanical or {}
+            st.write(mech.get("narrative", ""))
+            if "notes" in mech:
+                st.markdown(f"**Efecto mecánico:** {mech['notes']}")
 
-            st.markdown("**Coste:**")
-            st.json(o.cost)
-
-            st.markdown("**Metadatos:**")
-            st.json(o.meta)
 
     st.stop()
 
@@ -370,12 +371,26 @@ precept_choice = st.sidebar.selectbox(
 )
 
 precept = PRECEPTS[precept_choice]
-st.header("Constructor de Ordenanzas")
-st.subheader(f"Precepto seleccionado: {precept['verb']}")
-st.markdown(precept["description"])
 
-with st.expander("Detalles del Precepto"):
-    st.json(precept, expanded=False)
+st.header("Constructor de Ordenanzas")
+st.subheader(f"Precepto seleccionado: **{precept['verb']}**")
+
+# Descripción legible
+st.markdown(precept.get("description", "_Sin descripción definida._"))
+
+# Numen preferentes como texto
+preferred = precept.get("preferred_numen_ids", [])
+if preferred:
+    names = [
+        NUMEN[nid]["display_name"]
+        for nid in preferred
+        if nid in NUMEN
+    ]
+    st.markdown(f"**Numen preferentes:** {', '.join(names)}")
+else:
+    st.markdown("**Numen preferentes:** —")
+
+
 
 # --- 2) Select Numen ---
 st.sidebar.header("2. Numen (color/afinidad)")
@@ -401,7 +416,8 @@ for col, nid in zip(cols, numen_multi_choice):
             f"<div style='padding:0.5rem;border-radius:8px;border:1px solid #444;"
             f"background:{n['color_hex']}22;'>"
             f"<strong>{n['display_name']}</strong><br>"
-            f"<small>{', '.join(n['tags'])}</small>"
+            f"<small>{', '.join(n.get('tags', []))}</small><br>"
+            f"<span style='font-size: 0.8rem;'>{n.get('short_description', n.get('description', '')[:80] + '...')}</span>"
             f"</div>",
             unsafe_allow_html=True,
         )
@@ -430,6 +446,7 @@ for fam in families:
         mod = MODIFIERS[mid]
         rank = 1
         extra = 0
+
         if mid == "INTENSIDAD_POTENCIADO":
             rank = st.sidebar.slider(
                 "Nivel de Potenciado",
@@ -438,7 +455,23 @@ for fam in families:
                 value=1,
                 key=f"rank_{mid}",
             )
-        if mid == "INTENSIDAD_MULTIPLICADO":
+        elif mid == "ALCANCE_EXTENDIDO":
+            rank = st.sidebar.slider(
+                "Rango de Alcance Extendido",
+                min_value=1,
+                max_value=mod.get("max_rank", 3),
+                value=1,
+                key=f"rank_{mid}",
+            )
+        elif mid == "DURACION_PERSISTENTE":
+            rank = st.sidebar.slider(
+                "Rango de Persistencia",
+                min_value=1,
+                max_value=mod.get("max_rank", 3),
+                value=1,
+                key=f"rank_{mid}",
+            )
+        elif mid == "INTENSIDAD_MULTIPLICADO":
             extra = st.sidebar.number_input(
                 "Instancias adicionales (Multiplicado)",
                 min_value=0,
@@ -447,25 +480,9 @@ for fam in families:
                 step=1,
                 key=f"extra_{mid}",
             )
-        if mid == "ALCANCE_EXTENDIDO":
-            rank = st.sidebar.slider(
-                "Rango de Alcance Extendido",
-                min_value=1,
-                max_value=mod.get("max_rank", 3),
-                value=1,
-                key=f"rank_{mid}",
-            )
-        if mid == "DURACION_PERSISTENTE":
-            rank = st.sidebar.slider(
-                "Rango de Persistencia",
-                min_value=1,
-                max_value=mod.get("max_rank", 3),
-                value=1,
-                key=f"rank_{mid}",
-            )
-        else:
-            rank = 1
+            # rank puede quedarse en 1 tranquilamente
 
+        # Para el resto de modificadores sin rango, rank=1 por defecto
         selected_modifiers.append(
             ModifierSelection(
                 modifier_id=mid,
@@ -473,6 +490,7 @@ for fam in families:
                 extra_instances=extra,
             )
         )
+
 
 long_duration = any(
     sel.modifier_id == "DURACION_PERSISTENTE" for sel in selected_modifiers
@@ -525,8 +543,7 @@ st.write(f"**Tier sugerido:** {tier} (1=Aprendiz, 2=Adeptus, 3=Maestro, 4=Archir
 
 st.subheader("Sugerencia mecánica automática")
 st.write(mechanics_suggestion.get("summary", ""))
-with st.expander("Detalles de la sugerencia", expanded=False):
-    st.json(mechanics_suggestion)
+
 
 
 # --- 5) DB lookup / save ---
@@ -536,12 +553,7 @@ existing = find_by_canonical_key(ORDINANCES, canonical_key)
 if existing:
     st.success("Esta combinación ya existe en el grimorio.")
     st.subheader(existing.name)
-    st.write("### Efecto mecánico")
-    st.json(existing.mechanical)
-    st.write("### Coste")
-    st.json(existing.cost)
-    st.write("### Metadatos")
-    st.json(existing.meta)
+
 else:
     st.info("Esta combinación aún no está registrada. Puedes guardarla como nueva Ordenanza.")
 
