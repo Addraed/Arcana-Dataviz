@@ -37,7 +37,7 @@ NUMEN: Dict[str, Dict[str, Any]] = {
         "color_hex": "#D4AF37",
         "symbol": "CIRCULO_MUESCA",
         "description": "Espacio, distorsión, portales y tránsito.",
-        "icon_url": "", 
+        "icon_url": BASE_NUMEN_ICON_URL + "liminis.png",         
         "tags": ["movimiento", "control", "posicion"],
     },
     "VITALIS": {
@@ -47,7 +47,7 @@ NUMEN: Dict[str, Dict[str, Any]] = {
         "color_hex": "#32CD32",
         "symbol": "CIRCULO_BROTE",
         "description": "Vida, crecimiento, regeneración y simbiosis.",
-        "icon_url": "", 
+        "icon_url": BASE_NUMEN_ICON_URL + "vitalis.png",         
         "tags": ["sanacion", "soporte"],
     },
     "IGNOTA": {
@@ -57,7 +57,7 @@ NUMEN: Dict[str, Dict[str, Any]] = {
         "color_hex": "#E44192",
         "symbol": "CIRCULO_VELOS",
         "description": "Secretos, velos, revelaciones y marcas ocultas.",
-        "icon_url": "", 
+        "icon_url": BASE_NUMEN_ICON_URL + "ignota.png",         
         "tags": ["sigilo", "informacion", "control"],
     },
     "TELLURIS": {
@@ -67,7 +67,7 @@ NUMEN: Dict[str, Dict[str, Any]] = {
         "color_hex": "#813600",
         "symbol": "TRAPECIO_COLUMNA",
         "description": "Roca, suelo, estructura y estabilidad.",
-        "icon_url": "", 
+        "icon_url": BASE_NUMEN_ICON_URL + "telluris.png",         
         "tags": ["defensa", "arquitectura", "elemental"],
     },
     "METALLUM": {
@@ -77,7 +77,7 @@ NUMEN: Dict[str, Dict[str, Any]] = {
         "color_hex": "#0047AB",
         "symbol": "PLACA_HEXAGONAL",
         "description": "Metal, forja, armaduras y armas.",
-        "icon_url": "", 
+        "icon_url": BASE_NUMEN_ICON_URL + "metallum.png",         
         "tags": ["defensa", "ofensivo", "arma"],
     },
     "ASTRALIS": {
@@ -87,7 +87,7 @@ NUMEN: Dict[str, Dict[str, Any]] = {
         "color_hex": "#FCDA90",
         "symbol": "HALO_CRUZ",
         "description": "Luz estelar, orientación, presagios y guías.",
-        "icon_url": "", 
+        "icon_url": BASE_NUMEN_ICON_URL + "astralis.png",         
         "tags": ["luz", "soporte", "adivinacion"],
     },
     "HIERATIA": {
@@ -97,7 +97,7 @@ NUMEN: Dict[str, Dict[str, Any]] = {
         "color_hex": "#6CA6FF",
         "symbol": "CIRCULO_NIMBUS",
         "description": "Esfera celestial, sacralidad, juramentos y protección.",
-        "icon_url": "", 
+        "icon_url": BASE_NUMEN_ICON_URL + "hieratia.png",         
         "tags": ["proteccion", "juramento", "sacro"],
     },
     "UMBRA": {
@@ -107,7 +107,7 @@ NUMEN: Dict[str, Dict[str, Any]] = {
         "color_hex": "#2F2F2F",
         "symbol": "CRECIENTE_CHEVRON",
         "description": "Sombras, ocultación, perfiles, penumbra.",
-        "icon_url": "", 
+        "icon_url": BASE_NUMEN_ICON_URL + "umbra.png",         
         "tags": ["sigilo", "debilitacion"],
     },
     "CHRONENS": {
@@ -117,7 +117,7 @@ NUMEN: Dict[str, Dict[str, Any]] = {
         "color_hex": "#C0C0C0",
         "symbol": "CIRCULO_ROTO_AGUJA",
         "description": "Tiempo, ritmo, aceleración y suspensión.",
-        "icon_url": "", 
+        "icon_url": BASE_NUMEN_ICON_URL + "chronens.png",         
         "tags": ["control", "tempo"],
     },
     "LIKA": {
@@ -127,7 +127,7 @@ NUMEN: Dict[str, Dict[str, Any]] = {
         "color_hex": "#FFFFFF",
         "symbol": "DOBLE_OVALO_PUENTE",
         "description": "Lazos, pactos, contratos y redes.",
-        "icon_url": "", 
+        "icon_url": BASE_NUMEN_ICON_URL + "lika.png",         
         "tags": ["juramento", "control", "soporte"],
     },
     "MITAUNA": {
@@ -137,7 +137,7 @@ NUMEN: Dict[str, Dict[str, Any]] = {
         "color_hex": "#FF0000",
         "symbol": "ROMBO_IMPACTO",
         "description": "Fuerza bruta, choque, impacto y rabia.",
-        "icon_url": "", 
+        "icon_url": BASE_NUMEN_ICON_URL + "mitauna.png",         
         "tags": ["ofensivo", "fisico"],
     },
     "AHMAR": {
@@ -147,7 +147,7 @@ NUMEN: Dict[str, Dict[str, Any]] = {
         "color_hex": "#B22222",
         "symbol": "GOTA_BARRA",
         "description": "Sangre, sacrificio, linaje y pactos vitales.",
-        "icon_url": "", 
+        "icon_url": BASE_NUMEN_ICON_URL + "ahmar.png",         
         "tags": ["coste", "vital", "sacrificio"],
     },
     "AETHERIS": {
@@ -157,7 +157,7 @@ NUMEN: Dict[str, Dict[str, Any]] = {
         "color_hex": "#68D6B0",
         "symbol": "ONDAS_ASCENDENTES",
         "description": "Viento, corrientes, flotación y desplazamiento.",
-        "icon_url": "", 
+        "icon_url": BASE_NUMEN_ICON_URL + "aetheris.png",         
         "tags": ["movimiento", "control"],
     },
     "RAIZENS": {
@@ -167,7 +167,7 @@ NUMEN: Dict[str, Dict[str, Any]] = {
         "color_hex": "#FFD700",
         "symbol": "CIRCULO_RAYO",
         "description": "Relámpagos, descarga súbita, impulso y sobrecarga.",
-        "icon_url": "", 
+        "icon_url": BASE_NUMEN_ICON_URL + "raizens.png",         
         "tags": ["ofensivo", "impacto", "rapido"],
     },
     "AVAZAX": {
@@ -177,7 +177,7 @@ NUMEN: Dict[str, Dict[str, Any]] = {
         "color_hex": "#A47DFF",
         "symbol": "DIAFRAGMA_ONDAS",
         "description": "Sonido, vibración, resonancia y eco.",
-        "icon_url": "", 
+        "icon_url": BASE_NUMEN_ICON_URL + "avazax.png",         
         "tags": ["control", "area", "sensorial"],
     },
     "MORTIS": {
@@ -187,7 +187,7 @@ NUMEN: Dict[str, Dict[str, Any]] = {
         "color_hex": "#00FF80",
         "symbol": "CIRCULO_SEGMENTADO",
         "description": "Transición, final, reposo y quiebre.",
-        "icon_url": "", 
+        "icon_url": BASE_NUMEN_ICON_URL + "mortis.png",         
         "tags": ["necro", "control", "transicion"],
     },
     "ONIRIANS": {
@@ -197,7 +197,7 @@ NUMEN: Dict[str, Dict[str, Any]] = {
         "color_hex": "#5D67C0",
         "symbol": "CRECIENTE_ESPIRAL",
         "description": "Sueños, ilusión, desvío de la atención.",
-        "icon_url": "", 
+        "icon_url": BASE_NUMEN_ICON_URL + "onirians.png",         
         "tags": ["ilusion", "control_mental"],
     },
     "NATURAE": {
@@ -207,7 +207,7 @@ NUMEN: Dict[str, Dict[str, Any]] = {
         "color_hex": "#ACAF04",
         "symbol": "CIRCULO_RAMIFICACION",
         "description": "Ciclos naturales, flora, fauna y simbiosis.",
-        "icon_url": "", 
+        "icon_url": BASE_NUMEN_ICON_URL + "naturae.png",         
         "tags": ["naturaleza", "soporte"],
     },
     "PSYKONENS": {
@@ -217,7 +217,7 @@ NUMEN: Dict[str, Dict[str, Any]] = {
         "color_hex": "#7801FF",
         "symbol": "OJO_ESPIRAL",
         "description": "Mente, emociones, dominación psíquica.",
-        "icon_url": "", 
+        "icon_url": BASE_NUMEN_ICON_URL + "psykonens.png",         
         "tags": ["control_mental", "comunicacion"],
     },
 }
