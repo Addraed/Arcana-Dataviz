@@ -340,21 +340,30 @@ def inject_global_css():
     details.numen-card-full:hover {
         transform: rotateX(8deg) rotateY(-7deg) translateY(-4px);
         box-shadow: 0 18px 30px rgba(0,0,0,0.75);
+        overflow: visible
     }
+    /* Al hacer hover sobre la carta, la badge crece y flota más */
+    details.numen-card-full:hover .numen-emblem {
+        transform: translateZ(26px) scale(1.5) translateY(-2px);
+        box-shadow:
+            0 0 0 1px rgba(255,255,255,0.25),
+            0 14px 22px rgba(0,0,0,0.8);
+        overflow: visible
+    }
+
+
 
     /* “Emblema” del Numen: fondo + PNG */
     .numen-emblem {
         position: relative;
         width: 56px;      /* antes 56 */
         height: 56px;     /* antes 56 */
-        border-radius: 10px;
-        background: rgba(255, 255, 255, 0.10);
-        box-shadow:
-            0 0 0 1px rgba(255,255,255,0.16),
-            0 8px 14px rgba(0,0,0,0.55);
+        background: none !important;
+        border: none !important;
+        box-shadow: none !important;
         overflow: visible;      /* necesario para que sobresalga */
         flex-shrink: 0;
-        transform: translateZ(0px);
+        transform: translateZ(22px);
     }
 
 
@@ -385,6 +394,8 @@ def inject_global_css():
             drop-shadow(0 0 3px rgba(0,0,0,0.7))
             drop-shadow(0 0 6px rgba(0,0,0,0.5));
     }
+    
+
     /* reutilizamos textura animada en preceptos + numen */
     details.precept-card::before,
     details.numen-card-full::before {
