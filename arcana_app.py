@@ -48,7 +48,10 @@ def inject_global_css():
         overflow: hidden;
         min-height: 5rem;
     }
-
+    .numen-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 0 14px rgba(0,0,0,0.7);
+    }
     .numen-card-name {
         font-weight: 600;
         font-size: 0.95rem;
@@ -69,6 +72,26 @@ def inject_global_css():
         display: block;
     }
 
+    /* Emblema pequeño a la derecha */
+    .numen-card-emblem {
+        position: relative;
+        width: 46px;
+        height: 46px;
+        margin-right: 6px;
+        flex-shrink: 0;
+        transform: translateZ(10px);
+        transition: transform 0.25s ease, filter 0.25s ease;
+    }
+
+    /* Imagen */
+    .numen-card-emblem img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        filter: drop-shadow(0 0 4px rgba(0,0,0,0.65));
+    }    
+
+    
     /* CARTAS ANIMADAS DE ORDENANZA (details + summary) */
     details.ordinance-card {
         margin-bottom: 0.9rem;
@@ -483,6 +506,17 @@ def inject_numen_effects_css():
         100% { transform: translate(0, -2px); }
     }
 
+    @keyframes rock-quake-tilt {
+        0% { transform: translate(0px, -2px) rotate(0deg); }
+        15% { transform: translate(1px, -3px) rotate(-0.4deg); }
+        30% { transform: translate(-2px, -1px) rotate(0.3deg); }
+        45% { transform: translate(2px, -4px) rotate(-0.5deg); }
+        60% { transform: translate(-1px, -3px) rotate(0.2deg); }
+        80% { transform: translate(1px, -2px) rotate(-0.3deg); }
+        100% { transform: translate(0px, -2px) rotate(0deg); }
+    }
+    
+
     @keyframes numen-drip {
         0%   { background-position: 0 0; }
         100% { background-position: 0 20px; }
@@ -493,6 +527,28 @@ def inject_numen_effects_css():
         100% { background-position: 40px 0; }
     }
 
+    @keyframes numen-wave-sine {
+        0% { background-position: 0px 0px;
+            transform: translateY(0px);
+            opacity: 0.55;}
+        20% {  background-position: 22px -4px;
+            transform: translateY(-2px);
+            opacity: 0.80; }
+        40% {   background-position: 44px 0px;
+            transform: translateY(0px);
+            opacity: 0.90;  }
+        60% {  background-position: 22px 4px;
+            transform: translateY(2px);
+            opacity: 0.75;  }
+        80% { background-position: 0px 0px;
+            transform: translateY(0px);
+            opacity: 0.60;  }
+        100% {  background-position: 0px 0px;
+            transform: translateY(0px);
+            opacity: 0.55;  }
+    }
+
+    
     @keyframes numen-zap {
         0%   { opacity: 0.1; }
         25%  { opacity: 0.4; }
@@ -625,7 +681,7 @@ def inject_numen_effects_css():
         box-shadow: 0 0 18px #813600aa;
     }
     details.numen-card-full.numen-telluris:hover::after {
-        animation: numen-ice-shards 2.2s infinite ease-in-out;
+        animation: rock-quake-tilt 2.2s infinite ease-in-out;
         background:
           repeating-linear-gradient(
             90deg,
@@ -768,7 +824,7 @@ def inject_numen_effects_css():
         box-shadow: 0 0 22px #68D6B0aa;
     }
     details.numen-card-full.numen-aetheris:hover::after {
-        animation: numen-wave-h 3.3s linear infinite;
+        animation: numen-wave-sine 2.5s linear infinite;
         background:
           repeating-linear-gradient(
             0deg,
@@ -803,10 +859,11 @@ def inject_numen_effects_css():
         box-shadow: 0 0 22px #A47DFFaa;
     }
     details.numen-card-full.numen-avazax:hover::after {
-        animation: numen-wave-h 2.0s linear infinite;
+        animation: numen-shadow-breathe 0.8s infinite ease-in-out;
         background:
-          radial-gradient(circle at 10% 50%, rgba(164,125,255,0.35), transparent 55%),
-          radial-gradient(circle at 70% 50%, rgba(164,125,255,0.25), transparent 55%);
+          radial-gradient(circle at 50% 20%, rgba(164,125,255,0.35), transparent 55%),
+          radial-gradient(circle at 10% 90%, rgba(255, 28, 243, 0.61), transparent 55%),
+          radial-gradient(circle at 90% 80%, rgba(164,125,255,0.25), transparent 55%);
         background-size: 140% 100%;
     }
 
@@ -936,25 +993,57 @@ def render_precept_card(precept_id: str):
 
 
 def render_numen_card(nid: str, compact: bool = False):
-    """Tarjeta de Numen con hover por tipo."""
+    """Tarjeta simplificada de Numen con emblema PNG a la derecha (clase original: numen-card)."""
     if nid not in NUMEN:
         st.write(f"(Numen {nid} no definido)")
         return
-    n = NUMEN[nid]
-    bg_color = n.get("color_hex", "#FFFFFF") + "22"
-    tags = ", ".join(n.get("tags", []))
-    desc_full = n.get("description", "")
-    short_desc = n.get("short_description", desc_full[:80] + "..." if desc_full else "")
-    extra_style = "min-height: 4.5rem;" if compact else "min-height: 5.5rem;"
 
-    html = f"""
-    <div class="numen-card numen-{nid.lower()}" style="background:{bg_color}; {extra_style}">
-        <span class="numen-card-name">{n['display_name']}</span>
-        <span class="numen-card-tags">{tags}</span>
-        <span class="numen-card-desc">{short_desc}</span>
-    </div>
-    """
+    n = NUMEN[nid]
+
+    name = n["display_name"]
+    tags = ", ".join(n.get("tags", [])) or "—"
+    desc_full = n.get("description", "")
+    short_desc = (
+        n.get("short_description")
+        or (desc_full[:70] + "..." if len(desc_full) > 70 else desc_full)
+    )
+
+    icon_url = n.get("icon_url", "")
+
+    bg_color = n["color_hex"] + "22"
+    border_color = n["color_hex"]
+    height = "4.6rem" if compact else "5.6rem"
+
+    slug = f"numen-{nid.lower()}"
+
+    # Emblema (solo si icon_url existe)
+    emblem_html = ""
+    if icon_url:
+        emblem_html = (
+            "<div class='numen-emblem-mini'>"
+                "<img src='" + icon_url + "' alt='" + name + " emblem'>"
+            "</div>"
+        )
+
+    html = (
+        "<div class='numen-card " + slug + "' "
+            "style='background:" + bg_color + "; border-color:" + border_color +
+            "; min-height:" + height + "; display:flex; justify-content:space-between; align-items:center;'>"
+
+            "<div class='numen-card-text'>"
+                "<span class='numen-card-name'>" + name + "</span>"
+                "<span class='numen-card-tags'>" + tags + "</span>"
+                "<span class='numen-card-desc'>" + short_desc + "</span>"
+            "</div>"
+
+            + emblem_html +
+
+        "</div>"
+    )
+
     st.markdown(html, unsafe_allow_html=True)
+
+
 
 def render_numen_full_card(nid: str):
     n = NUMEN.get(nid)
