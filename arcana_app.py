@@ -121,7 +121,7 @@ def inject_global_css():
         font-size: 0.85rem;
     }
 
-    /* Texturas animadas / vibración (inspirado en efectos CSS hover) */
+    /* Texturas animadas / vibración (ordenanzas) */
     details.ordinance-card::before {
         content: "";
         position: absolute;
@@ -240,7 +240,8 @@ def inject_global_css():
         transform: translateY(-2px);
         box-shadow: 0 0 16px rgba(0,0,0,0.8);
     }
-        /* PRECEPTOS */
+
+    /* PRECEPTOS mini (constructor) */
     .precept-card {
         margin-top: 0.4rem;
         margin-bottom: 0.2rem;
@@ -267,7 +268,11 @@ def inject_global_css():
         font-size: 0.8rem;
         opacity: 0.85;
     }
-    /* CARTAS COMPLETAS DE NUMEN (details+summary) */
+
+    /* =============================
+       CARTAS COMPLETAS DE NUMEN
+       + 3D HOVER CON ICONO PNG
+       ============================= */
     details.numen-card-full {
         margin-bottom: 0.7rem;
         border-radius: 10px;
@@ -279,6 +284,7 @@ def inject_global_css():
             transform 0.18s ease-out,
             box-shadow 0.18s ease-out,
             border-color 0.18s ease-out;
+        perspective: 1000px; /* para efecto 3D interno */
     }
     details.numen-card-full summary {
         list-style: none;
@@ -289,6 +295,31 @@ def inject_global_css():
     details.numen-card-full summary::-webkit-details-marker {
         display: none;
     }
+
+    /* Contenedor 3D interno: icono + texto */
+    .numen-3d-inner {
+        display: flex;
+        gap: 0.75rem;
+        align-items: center;
+        transform-style: preserve-3d;
+        transition:
+            transform 0.25s ease-out,
+            filter 0.25s ease-out;
+    }
+
+    /* Al hacer hover en la carta, “inclina” el contenido */
+    details.numen-card-full:hover .numen-3d-inner {
+        transform: rotateY(10deg) rotateX(2deg) translateY(-1px);
+        filter: drop-shadow(0 0 12px rgba(0,0,0,0.8));
+    }
+
+    /* Bloque cabecera (nombre + tags) */
+    .numen-header-block {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
     .numen-header-title {
         font-weight: 600;
         font-size: 0.95rem;
@@ -303,17 +334,64 @@ def inject_global_css():
         font-size: 0.75rem;
         opacity: 0.9;
     }
+
     .numen-details {
         padding: 0 0.8rem 0.6rem 0.8rem;
         border-top: 1px solid rgba(255,255,255,0.06);
         font-size: 0.85rem;
     }
+
+    /* Marco general hover (además de los efectos específicos por tipo) */
     details.numen-card-full:hover {
         transform: translateY(-2px);
         box-shadow: 0 0 16px rgba(0,0,0,0.8);
     }
 
-    /* reaprovechamos la textura animada de las ordenanzas para todas las "details-card" */
+    /* “Emblema” del Numen: fondo + PNG */
+    .numen-emblem {
+        position: relative;
+        width: 56px;
+        height: 56px;
+        border-radius: 18px;
+        background: radial-gradient(circle at 30% 20%, rgba(255,255,255,0.25), transparent 60%);
+        box-shadow:
+            0 0 0 1px rgba(255,255,255,0.16),
+            0 12px 22px rgba(0,0,0,0.7);
+        overflow: hidden;
+        flex-shrink: 0;
+        transform: translateZ(18px); /* sobresale un pelín en el 3D */
+    }
+
+    .numen-emblem::before {
+        content: "";
+        position: absolute;
+        inset: -40%;
+        background: conic-gradient(
+            from 0deg,
+            rgba(255,255,255,0.0),
+            rgba(255,255,255,0.25),
+            rgba(255,255,255,0.0),
+            rgba(255,255,255,0.25),
+            rgba(255,255,255,0.0)
+        );
+        opacity: 0.18;
+        mix-blend-mode: screen;
+        animation: spin-glow 14s linear infinite;
+        pointer-events: none;
+    }
+
+    .numen-emblem img {
+        position: absolute;
+        inset: 15%;
+        width: 70%;
+        height: 70%;
+        object-fit: contain;
+        filter:
+            drop-shadow(0 0 6px rgba(0,0,0,0.9))
+            drop-shadow(0 0 12px rgba(0,0,0,0.6));
+    }
+
+    /* reutilizamos textura animada en preceptos + numen */
     details.precept-card::before,
     details.numen-card-full::before {
         content: "";
@@ -971,31 +1049,6 @@ inject_global_css()
 inject_numen_effects_css()
 
 
-def render_numen_card(nid: str, compact: bool = False):
-    """
-    Renderiza una tarjeta de Numen con efecto hover.
-    compact=True la hace un pelín más corta para listados tipo grid.
-    """
-    if nid not in NUMEN:
-        st.write(f"(Numen {nid} no definido)")
-        return
-
-    n = NUMEN[nid]
-    bg_color = n.get("color_hex", "#FFFFFF") + "22"
-    tags = ", ".join(n.get("tags", []))
-    desc_full = n.get("description", "")
-    short_desc = n.get("short_description", desc_full[:80] + "..." if desc_full else "")
-
-    extra_style = "min-height: 4.5rem;" if compact else "min-height: 5.5rem;"
-
-    html = f"""
-    <div class="numen-card numen-{nid.lower()}" style="background:{bg_color}; {extra_style}">
-        <span class="numen-card-name">{n['display_name']}</span>
-        <span class="numen-card-tags">{tags}</span>
-        <span class="numen-card-desc">{short_desc}</span>
-    </div>
-    """
-    st.markdown(html, unsafe_allow_html=True)
 
 
 
