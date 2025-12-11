@@ -345,17 +345,18 @@ def inject_global_css():
     /* “Emblema” del Numen: fondo + PNG */
     .numen-emblem {
         position: relative;
-        width: 56px;
-        height: 56px;
-        border-radius: 18px;
-        background: radial-gradient(circle at 30% 20%, rgba(255,255,255,0.25), transparent 60%);
+        width: 56px;      /* antes 56 */
+        height: 56px;     /* antes 56 */
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.10);
         box-shadow:
             0 0 0 1px rgba(255,255,255,0.16),
-            0 12px 22px rgba(0,0,0,0.7);
-        overflow: hidden;
+            0 8px 14px rgba(0,0,0,0.55);
+        overflow: visible;      /* necesario para que sobresalga */
         flex-shrink: 0;
-        transform: translateZ(18px); /* sobresale un pelín en el 3D */
+        transform: translateZ(0px);
     }
+
 
     .numen-emblem::before {
         content: "";
@@ -377,15 +378,13 @@ def inject_global_css():
 
     .numen-emblem img {
         position: absolute;
-        inset: 15%;
-        width: 70%;
-        height: 70%;
+        width: 56px;   /* tamaño real del PNG */
+        height: 56px;
         object-fit: contain;
         filter:
-            drop-shadow(0 0 6px rgba(0,0,0,0.9))
-            drop-shadow(0 0 12px rgba(0,0,0,0.6));
+            drop-shadow(0 0 3px rgba(0,0,0,0.7))
+            drop-shadow(0 0 6px rgba(0,0,0,0.5));
     }
-
     /* reutilizamos textura animada en preceptos + numen */
     details.precept-card::before,
     details.numen-card-full::before {
@@ -530,7 +529,7 @@ def inject_numen_effects_css():
         animation: numen-fire-flicker 0.9s infinite alternate;
         background:
           radial-gradient(circle at 20% 80%, rgba(255, 200, 150, 0.0) 0, rgba(255, 200, 150, 0.7) 4px, transparent 10px),
-          radial-gradient(circle at 40% 100%, rgba(255, 120, 0, 0.0) 0, rgba(255, 120, 0, 0.9) 3px, transparent 9px),
+          radial-gradient(circle at 65% 50%, rgba(255, 120, 0, 0.0) 0, rgba(255, 120, 0, 0.9) 3px, transparent 9px),
           radial-gradient(circle at 75% 85%, rgba(255, 80, 0, 0.0) 0, rgba(255, 80, 0, 0.8) 3px, transparent 10px);
     }
 
