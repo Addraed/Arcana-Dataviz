@@ -351,6 +351,10 @@ def inject_global_css():
         overflow: visible
     }
 
+    details.numen-card-full:hover::before {
+        opacity: 0 !important;
+        animation: none !important;
+    }
 
 
     /* “Emblema” del Numen: fondo + PNG */
@@ -370,7 +374,7 @@ def inject_global_css():
     .numen-emblem::before {
         content: "";
         position: absolute;
-        inset: -40%;
+        inset: -10%;
         background: conic-gradient(
             from 0deg,
             rgba(255,255,255,0.0),
@@ -491,9 +495,9 @@ def inject_numen_effects_css():
 
     @keyframes numen-zap {
         0%   { opacity: 0.1; }
-        25%  { opacity: 0.8; }
-        50%  { opacity: 0.2; }
-        75%  { opacity: 0.9; }
+        25%  { opacity: 0.4; }
+        50%  { opacity: 0.1; }
+        75%  { opacity: 0.5; }
         100% { opacity: 0.1; }
     }
 
@@ -525,6 +529,9 @@ def inject_numen_effects_css():
         background:
           radial-gradient(circle at 10% 0%, rgba(255,255,255,0.08), transparent 55%),
           radial-gradient(circle at 90% 100%, rgba(255,255,255,0.05), transparent 60%);
+        max-width: 500px;     /* ajusta el ancho a lo que prefieras */
+        margin-left: auto;
+        margin-right: auto;       
     }
 
     /* =====================================================
@@ -541,7 +548,9 @@ def inject_numen_effects_css():
         background:
           radial-gradient(circle at 20% 80%, rgba(255, 200, 150, 0.0) 0, rgba(255, 200, 150, 0.7) 4px, transparent 10px),
           radial-gradient(circle at 65% 50%, rgba(255, 120, 0, 0.0) 0, rgba(255, 120, 0, 0.9) 3px, transparent 9px),          
-          radial-gradient(circle at 55% 50%, rgba(255, 120, 0, 0.0) 0, rgba(255, 120, 0, 0.9) 3px, transparent 9px),
+          radial-gradient(circle at 55% 30%, rgba(255, 120, 0, 0.0) 0, rgba(255, 200, 150, 0.9) 3px, transparent 9px),
+          radial-gradient(circle at 85% 20%, rgba(255, 120, 0, 0.0) 0, rgba(255, 120, 0, 0.9) 3px, transparent 9px),
+          radial-gradient(circle at 45% 55%, rgba(255, 120, 0, 0.0) 0, rgba(255, 120, 0, 0.9) 3px, transparent 9px),                    
           radial-gradient(circle at 75% 85%, rgba(255, 80, 0, 0.0) 0, rgba(255, 80, 0, 0.8) 3px, transparent 10px);
     }
 
@@ -677,9 +686,9 @@ def inject_numen_effects_css():
     details.numen-card-full.numen-umbra:hover::after {
         animation: numen-shadow-breathe 2.8s infinite ease-in-out;
         background:
-          radial-gradient(circle at 50% 20%, rgba(0, 0, 0, 0.7), transparent 70%),
-          radial-gradient(circle at 10% 90%, rgba(0, 0, 0, 0.6), transparent 65%),
-          radial-gradient(circle at 90% 80%, rgba(0, 0, 0, 0.6), transparent 65%);
+          radial-gradient(circle at 50% 20%, rgba(31, 31, 31, 0.8), transparent 80%),
+          radial-gradient(circle at 10% 90%, rgba(31, 31, 31, 0.6), transparent 65%),
+          radial-gradient(circle at 90% 80%, rgba(31, 31, 31, 0.6), transparent 65%);
     }
 
     /* CHRONENS — tics de reloj */
@@ -848,7 +857,7 @@ def inject_numen_effects_css():
         box-shadow: 0 0 24px #7801FFaa;
     }
     details.numen-card-full.numen-psykonens:hover::after {
-        animation: numen-spiral 5.0s linear infinite;
+        animation: numen-space-warp 3.0s ease-in-out infinite;
         background:
           conic-gradient(
             from 0deg,
