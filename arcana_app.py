@@ -540,7 +540,8 @@ def inject_numen_effects_css():
         animation: numen-fire-flicker 0.9s infinite alternate;
         background:
           radial-gradient(circle at 20% 80%, rgba(255, 200, 150, 0.0) 0, rgba(255, 200, 150, 0.7) 4px, transparent 10px),
-          radial-gradient(circle at 65% 50%, rgba(255, 120, 0, 0.0) 0, rgba(255, 120, 0, 0.9) 3px, transparent 9px),
+          radial-gradient(circle at 65% 50%, rgba(255, 120, 0, 0.0) 0, rgba(255, 120, 0, 0.9) 3px, transparent 9px),          
+          radial-gradient(circle at 55% 50%, rgba(255, 120, 0, 0.0) 0, rgba(255, 120, 0, 0.9) 3px, transparent 9px),
           radial-gradient(circle at 75% 85%, rgba(255, 80, 0, 0.0) 0, rgba(255, 80, 0, 0.8) 3px, transparent 10px);
     }
 
