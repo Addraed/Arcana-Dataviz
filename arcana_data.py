@@ -6,7 +6,7 @@ from typing import Dict, Any
 # NUMEN
 # ============================================================
 
-BASE_NUMEN_ICON_URL = "https://raw.githubusercontent.com/USER/REPO/main/assets/numen_icons/"
+BASE_NUMEN_ICON_URL = "https://raw.githubusercontent.com/Addraed/Arcana-Dataviz/main/assets/numen_icons/"
 
 
 NUMEN: Dict[str, Dict[str, Any]] = {
@@ -17,7 +17,7 @@ NUMEN: Dict[str, Dict[str, Any]] = {
         "color_hex": "#FF4500",
         "symbol": "TRIANGULO_LLAMA",
         "description": "Fuego, calor, combustión y purificación por llama.",
-        "icon_url": BASE_NUMEN_ICON_URL + "fire.png",        
+        "icon_url": BASE_NUMEN_ICON_URL + "ignis.png",        
         "tags": ["elemental", "ofensivo", "transformacion"],
     },
     "CRYOBORENS": {
