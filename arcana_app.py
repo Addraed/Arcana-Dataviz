@@ -307,11 +307,6 @@ def inject_global_css():
             filter 0.25s ease-out;
     }
 
-    /* Al hacer hover en la carta, “inclina” el contenido */
-    details.numen-card-full:hover .numen-3d-inner {
-        transform: rotateY(10deg) rotateX(2deg) translateY(-1px);
-        filter: drop-shadow(0 0 12px rgba(0,0,0,0.8));
-    }
 
     /* Bloque cabecera (nombre + tags) */
     .numen-header-block {
@@ -343,8 +338,8 @@ def inject_global_css():
 
     /* Marco general hover (además de los efectos específicos por tipo) */
     details.numen-card-full:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 0 16px rgba(0,0,0,0.8);
+        transform: rotateX(8deg) rotateY(-7deg) translateY(-4px);
+        box-shadow: 0 18px 30px rgba(0,0,0,0.75);
     }
 
     /* “Emblema” del Numen: fondo + PNG */
@@ -411,9 +406,7 @@ def inject_global_css():
         pointer-events: none;
     }
 
-    @keyframes spin-glow {
-        to { transform: rotate(360deg); }
-    }
+
     </style>
     """
     st.markdown(css, unsafe_allow_html=True)
@@ -502,8 +495,8 @@ def inject_numen_effects_css():
 
     /* --------- BASE POR DEFECTO PARA CUALQUIER NUMEN --------- */
     details.numen-card-full:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 0 16px rgba(0,0,0,0.8);
+        transform: rotateX(8deg) rotateY(-7deg) translateY(-4px);
+        box-shadow: 0 18px 30px rgba(0,0,0,0.75);
     }
 
     details.numen-card-full::after {
@@ -513,6 +506,7 @@ def inject_numen_effects_css():
         opacity: 0;
         pointer-events: none;
         mix-blend-mode: screen;
+        transition: opacity 0.25s ease-out;
     }
 
     details.numen-card-full:hover::after {
@@ -955,21 +949,40 @@ def render_numen_full_card(nid: str):
     tags = ", ".join(n.get("tags", [])) or "—"
     desc = n.get("description", "_Sin descripción_")
 
-    slug = f"numen-{nid.lower()}"  # <- clase específica por Numen
+    slug = f"numen-{nid.lower()}"  # ej. numen-ignis
 
-    html = f"""
-    <details class="numen-card-full {slug}" style="border-color:{color};background:{bg};">
-      <summary>
-        <div class="numen-header-title">{name}</div>
-        <div class="numen-header-sub">{base_name}</div>
-        <div class="numen-header-tags">{tags}</div>
-      </summary>
-      <div class="numen-details">
-        <p><strong>Descripción:</strong><br>{desc}</p>
-      </div>
-    </details>
-    """
+    icon_url = n.get("icon_url") or ""
+    if icon_url:
+        emblem_html = (
+            '<div class="numen-emblem">'
+            '<img src="' + icon_url + '" alt="' + name + ' icon" />'
+            '</div>'
+        )
+    else:
+        emblem_html = ""
+
+    html = (
+        '<details class="numen-card-full ' + slug + '" '
+        'style="border-color:' + color + ';background:' + bg + ';">'
+        '<summary>'
+        '<div class="numen-3d-inner">'
+        + emblem_html +
+        '<div class="numen-header-block">'
+        '<div class="numen-header-title">' + name + '</div>'
+        '<div class="numen-header-sub">' + base_name + '</div>'
+        '<div class="numen-header-tags">' + tags + '</div>'
+        '</div>'
+        '</div>'
+        '</summary>'
+        '<div class="numen-details">'
+        '<p><strong>Descripción:</strong><br>' + desc + '</p>'
+        '</div>'
+        '</details>'
+    )
+
     st.markdown(html, unsafe_allow_html=True)
+
+
 
 
 
