@@ -27,7 +27,7 @@ NUMEN: Dict[str, Dict[str, Any]] = {
         "color_hex": "#00CED1",
         "symbol": "TRIANGULO_HIELO",
         "description": "Frío, cristalización, entumecimiento y detención.",
-        "icon_url": "",         
+        "icon_url": BASE_NUMEN_ICON_URL + "cryoborens.png",         
         "tags": ["elemental", "control", "prision"],
     },
     "LIMINIS": {
