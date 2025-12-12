@@ -4,6 +4,7 @@ emoji: 🔮
 colorFrom: indigo
 colorTo: red
 sdk: docker
+app_file: arcana_app.py
 pinned: false
 ---
 
