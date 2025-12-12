@@ -1536,18 +1536,12 @@ if mode == "Grimorio de Ordenanzas":
     st.sidebar.subheader("Exportar")
     
     st.sidebar.download_button(
-        label="⬇️ Descargar grimorio (runtime)",
+        label="⬇️ Descargar grimorio (JSON)",
         data=export_ordinances_json_bytes(ORDINANCES),
         file_name="arcana_ordinances_export.json",
         mime="application/json",
     )
-    
-    st.sidebar.download_button(
-        label="⬇️ Descargar grimorio (archivo DB)",
-        data=read_db_file_bytes(),
-        file_name="ordinances_db.json",
-        mime="application/json",
-    )
+
 
 
 
