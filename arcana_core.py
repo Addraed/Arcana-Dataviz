@@ -732,7 +732,7 @@ def suggest_utility_effect(
 
 # ---------- Simple JSON "DB" helpers ----------
 
-DB_PATH = os.environ.get( "ARCANA_DB_PATH", "/data/ordinances_db.json")
+DB_PATH = os.environ.get( "ARCANA_DB_PATH", "ordinances_db.json")
 
 
 def load_ordinances() -> Dict[str, Ordinance]:
