@@ -768,36 +768,51 @@ def load_ordinances() -> Dict[str, Ordinance]:
 
 def save_ordinances(
     ordinances: Dict[str, Ordinance], 
-    make_backup: bool = True,
-    commit_to_repo: bool = True  # New parameter
+    make_backup: bool = False,
+    commit_to_repo: bool = True
 ) -> None:
     """
     Save ordinances locally and optionally commit to HF repo.
-    
-    Args:
-        ordinances: Dictionary of ordinance objects
-        make_backup: Whether to create local backup (only works with persistent storage)
-        commit_to_repo: Whether to commit to HF repository (recommended for free tier)
     """
+    print(f"🔍 save_ordinances called with {len(ordinances)} ordinances")
+    print(f"   make_backup={make_backup}, commit_to_repo={commit_to_repo}")
+    
     raw: Dict[str, Any] = {oid: asdict(ord_obj) for oid, ord_obj in ordinances.items()}
     
-    # Write main DB locally (ephemeral in free tier)
-    with open(DB_PATH, "w", encoding="utf-8") as f:
-        json.dump(raw, f, ensure_ascii=False, indent=2)
+    # Write main DB locally
+    print(f"💾 Saving to local DB_PATH: {DB_PATH}")
+    try:
+        with open(DB_PATH, "w", encoding="utf-8") as f:
+            json.dump(raw, f, ensure_ascii=False, indent=2)
+        print(f"✓ Local save successful")
+    except Exception as e:
+        print(f"✗ Local save failed: {e}")
+        traceback.print_exc()
     
-    # Write timestamped backup (only if persistent storage available)
+    # Write timestamped backup
     if make_backup:
         try:
-            _write_backup_snapshot(raw)
+            backup_path = _write_backup_snapshot(raw)
+            print(f"✓ Backup created: {backup_path}")
         except Exception as e:
-            print(f"⚠️  Backup failed (persistent storage may not be available): {e}")
+            print(f"⚠️  Backup failed: {e}")
     
-    # Commit to HF repo (works on free tier!)
-    if commit_to_repo and HF_TOKEN:
+    # Commit to HF repo
+    if commit_to_repo:
+        print(f"🚀 Attempting to commit to HF repo...")
+        print(f"   HF_TOKEN present: {bool(HF_TOKEN)}")
+        print(f"   Repo ID: {HF_REPO_ID}")
+        
+        if not HF_TOKEN:
+            print("✗ HF_TOKEN not found - skipping repo commit")
+            return
+        
         try:
             _commit_to_hf_repo(raw)
+            print("✓ Commit to HF repo successful!")
         except Exception as e:
-            print(f"⚠️  Failed to commit to HF repo: {e}")
+            print(f"✗ Commit to HF repo failed: {e}")
+            traceback.print_exc()
 
 
 def find_by_canonical_key(
@@ -823,7 +838,7 @@ def next_ordinance_id(ordinances: Dict[str, Ordinance]) -> str:
     return f"ORD_{n:06d}"
 
 def _write_backup_snapshot(raw: Dict[str, Any]) -> Path:
-    """Create timestamped backup (requires persistent storage)"""
+    """Create timestamped backup"""
     BACKUP_DIR.mkdir(parents=True, exist_ok=True)
     ts = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%SZ")
     backup_path = BACKUP_DIR / f"ordinances_db_{ts}.json"
@@ -833,31 +848,25 @@ def _write_backup_snapshot(raw: Dict[str, Any]) -> Path:
 
 def _commit_to_hf_repo(raw: Dict[str, Any]) -> None:
     """Commit current ordinances to HF Space repository"""
-    if not HF_TOKEN:
-        print("⚠️  HF_TOKEN not found, skipping repo commit")
-        return
+    print("   Initializing HfApi...")
+    api = HfApi()
     
-    try:
-        api = HfApi()
-        
-        # Convert to JSON bytes
-        json_bytes = json.dumps(raw, ensure_ascii=False, indent=2).encode("utf-8")
-        
-        # Upload to repo
-        api.upload_file(
-            path_or_fileobj=json_bytes,
-            path_in_repo="ordinances_db.json",
-            repo_id=HF_REPO_ID,
-            repo_type="space",
-            token=HF_TOKEN,
-            commit_message=f"💾 Auto-save ordinances [{datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}]"
-        )
-        print("✓ Committed to HF repo successfully")
-    except Exception as e:
-        print(f"✗ Commit to HF repo failed: {e}")
-        raise
+    print("   Converting to JSON bytes...")
+    json_bytes = json.dumps(raw, ensure_ascii=False, indent=2).encode("utf-8")
+    print(f"   JSON size: {len(json_bytes)} bytes")
+    
+    print("   Uploading to HF repo...")
+    result = api.upload_file(
+        path_or_fileobj=json_bytes,
+        path_in_repo="ordinances_db.json",
+        repo_id=HF_REPO_ID,
+        repo_type="space",
+        token=HF_TOKEN,
+        commit_message=f"💾 Auto-save ordinances [{datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}]"
+    )
+    print(f"   Upload result: {result}")
 
 def export_ordinances_json_bytes(ordinances: Dict[str, Ordinance]) -> bytes:
-    """Export ordinances as JSON bytes (for downloads)"""
+    """Export ordinances as JSON bytes"""
     raw: Dict[str, Any] = {oid: asdict(ord_obj) for oid, ord_obj in ordinances.items()}
     return json.dumps(raw, ensure_ascii=False, indent=2).encode("utf-8")
