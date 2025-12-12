@@ -5,6 +5,7 @@ from typing import List, Dict, Any, Tuple
 from dataclasses import dataclass, asdict
 from arcana_data import NUMEN, PRECEPTS, MODIFIERS, get_base_die_for_precept
 from datetime import datetime, timezone
+from huggingface_hub import HfApi
 from pathlib import Path
 import math
 import json
