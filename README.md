@@ -3,7 +3,7 @@ title: A.R.C.A.N.A. — Ordinance Constructor
 emoji: 🔮
 colorFrom: indigo
 colorTo: red
-sdk: docker
+sdk: streamlit
 app_file: arcana_app.py
 pinned: false
 ---
