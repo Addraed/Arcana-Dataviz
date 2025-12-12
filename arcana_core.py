@@ -7,6 +7,8 @@ from arcana_data import NUMEN, PRECEPTS, MODIFIERS, get_base_die_for_precept
 from datetime import datetime, timezone
 from huggingface_hub import HfApi
 from pathlib import Path
+import requests
+import base64
 import math
 import json
 import os
