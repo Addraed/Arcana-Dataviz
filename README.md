@@ -1,5 +1,5 @@
 ---
-title: ARCANA Dataviz
+title: A.R.C.A.N.A. — Ordinance Constructor
 emoji: 🔮
 colorFrom: indigo
 colorTo: red
