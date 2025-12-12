@@ -1,6 +1,6 @@
 ---
 title: ARCANA Dataviz
-emoji:🔮
+emoji: 🔮
 colorFrom: indigo
 colorTo: red
 sdk: docker
