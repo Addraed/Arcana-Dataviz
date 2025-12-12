@@ -14,8 +14,7 @@ from arcana_core import (
     find_by_canonical_key,
     next_ordinance_id,
     suggest_mechanics,
-    export_ordinances_json_bytes,
-    read_db_file_bytes
+    export_ordinances_json_bytes
 )
 
 
