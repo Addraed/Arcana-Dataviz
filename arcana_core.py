@@ -736,7 +736,7 @@ def suggest_utility_effect(
 DB_PATH = os.environ.get( "ARCANA_DB_PATH", "ordinances_db.json")
 BACKUP_DIR = Path(os.environ.get("ARCANA_BACKUP_DIR", "grimoire_h"))
 HF_REPO_ID = "addraed/arcana-dataviz-hfspaces-streamlit-deploy"
-HF_TOKEN = os.environ.get("HF_TOKEN")  # Should already be set in HF Spaces
+HF_TOKEN = os.environ.get("arcana-dataviz")  # Should already be set in HF Spaces
 
 # Ensure backup directory exists
 BACKUP_DIR.mkdir(parents=True, exist_ok=True)
