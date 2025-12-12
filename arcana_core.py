@@ -763,7 +763,7 @@ def save_ordinances(
     ordinances: Dict[str, Ordinance], make_backup: bool = True, ) -> None:
     raw: Dict[str, Any] = {oid: asdict(ord_obj) for oid, ord_obj in ordinances.items()}
     # write main DB
-    with open(DB_PATH_P, "w", encoding="utf-8") as f:
+    with open(DB_PATH, "w", encoding="utf-8") as f:
         json.dump(raw, f, ensure_ascii=False, indent=2)
     # write timestamped backup
     if make_backup:
