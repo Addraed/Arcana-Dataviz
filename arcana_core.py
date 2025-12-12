@@ -733,6 +733,10 @@ def suggest_utility_effect(
 # ---------- Simple JSON "DB" helpers ----------
 
 DB_PATH = os.environ.get( "ARCANA_DB_PATH", "ordinances_db.json")
+BACKUP_DIR = Path(os.environ.get("ARCANA_BACKUP_DIR", "grimoire_h"))
+
+# Ensure backup directory exists
+BACKUP_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def load_ordinances() -> Dict[str, Ordinance]:
