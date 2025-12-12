@@ -4,6 +4,8 @@ from __future__ import annotations
 from typing import List, Dict, Any, Tuple
 from dataclasses import dataclass, asdict
 from arcana_data import NUMEN, PRECEPTS, MODIFIERS, get_base_die_for_precept
+from datetime import datetime, timezone
+from pathlib import Path
 import math
 import json
 import os
@@ -730,7 +732,7 @@ def suggest_utility_effect(
 
 # ---------- Simple JSON "DB" helpers ----------
 
-DB_PATH = "ordinances_db.json"
+DB_PATH = os.environ.get( "ARCANA_DB_PATH", "/data/ordinances_db.json")
 
 
 def load_ordinances() -> Dict[str, Ordinance]:
@@ -757,14 +759,15 @@ def load_ordinances() -> Dict[str, Ordinance]:
         )
     return ordinances
 
-
-def save_ordinances(ordinances: Dict[str, Ordinance]) -> None:
-    raw: Dict[str, Any] = {}
-    for oid, ord_obj in ordinances.items():
-        raw[oid] = asdict(ord_obj)
-    with open(DB_PATH, "w", encoding="utf-8") as f:
+def save_ordinances(
+    ordinances: Dict[str, Ordinance], make_backup: bool = True, ) -> None:
+    raw: Dict[str, Any] = {oid: asdict(ord_obj) for oid, ord_obj in ordinances.items()}
+    # write main DB
+    with open(DB_PATH_P, "w", encoding="utf-8") as f:
         json.dump(raw, f, ensure_ascii=False, indent=2)
-
+    # write timestamped backup
+    if make_backup:
+        _write_backup_snapshot(raw)
 
 def find_by_canonical_key(
     ordinances: Dict[str, Ordinance],
@@ -787,3 +790,14 @@ def next_ordinance_id(ordinances: Dict[str, Ordinance]) -> str:
     ]
     n = max(nums) + 1 if nums else 1
     return f"ORD_{n:06d}"
+
+def _write_backup_snapshot(raw: Dict[str, Any]) -> Path:
+    ts = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%SZ")
+    backup_path = BACKUP_DIR / f"ordinances_db_{ts}.json"
+    with open(backup_path, "w", encoding="utf-8") as f:
+        json.dump(raw, f, ensure_ascii=False, indent=2)
+    return backup_path
+
+def export_ordinances_json_bytes(ordinances: Dict[str, Ordinance]) -> bytes:
+    raw: Dict[str, Any] = {oid: asdict(ord_obj) for oid, ord_obj in ordinances.items()}
+    return json.dumps(raw, ensure_ascii=False, indent=2).encode("utf-8")
