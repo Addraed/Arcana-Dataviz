@@ -817,7 +817,7 @@ MODIFIERS: Dict[str, Dict[str, Any]] = {
     "COND_DISPARADOR": {
         "id": "COND_DISPARADOR",
         "family": "CONDICION",
-        "name": "Disparador",
+        "name": "Trigger",
         "description": "Se activa cuando se cumple una condición (palabra clave, gesto, evento).",
         "base_cost": 1,
         "tags": ["trampa", "preparado"],

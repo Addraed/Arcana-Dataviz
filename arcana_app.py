@@ -1311,13 +1311,14 @@ if mode == "Explorador de Numen":
 if mode == "Explorador de Modificadores":
     st.header("Explorador de Modificadores")
 
+    # Familias dinámicas
     families = sorted({m["family"] for m in MODIFIERS.values()})
     families.insert(0, "Todas")
 
     col_filters = st.columns([2, 3])
     with col_filters[0]:
         fam_filter = st.selectbox(
-            "Filtrar por familia (para mostrar una ruleta o todas):",
+            "Filtrar por familia:",
             options=families,
             index=0,
         )
@@ -1325,31 +1326,33 @@ if mode == "Explorador de Modificadores":
         search_text = st.text_input(
             "Buscar por nombre o descripción:",
             value="",
-            placeholder="Ej: Cono, Persistente...",
-        ).lower()
+            placeholder="Ej: Cono, Persistente, Ofensivo...",
+        ).lower().strip()
 
-    # Determinar qué familias vamos a mostrar en ruleta
+    # Qué familias mostramos
     if fam_filter == "Todas":
         fams_to_show = sorted({m["family"] for m in MODIFIERS.values()})
     else:
         fams_to_show = [fam_filter]
 
     total_mods = 0
+
     for fam in fams_to_show:
+        # Todos los mods de esa familia
         fam_mods = [
             (mid, m)
             for mid, m in MODIFIERS.items()
             if m["family"] == fam
         ]
 
-        # Filtro por búsqueda
-        fam_mods = [
-            (mid, m)
-            for mid, m in fam_mods
-            if not search_text
-            or search_text in m["name"].lower()
-            or search_text in m.get("description", "").lower()
-        ]
+        # Filtro por texto
+        if search_text:
+            fam_mods = [
+                (mid, m)
+                for mid, m in fam_mods
+                if search_text in m["name"].lower()
+                or search_text in m.get("description", "").lower()
+            ]
 
         if not fam_mods:
             continue
@@ -1361,16 +1364,17 @@ if mode == "Explorador de Modificadores":
         fam_mods_sorted = sorted(fam_mods, key=lambda x: x[1]["name"].lower())
         options = [mid for mid, _ in fam_mods_sorted]
 
-        # Ruleta (select_slider)
-        selected_mid = st.select_slider(
-            "Gira la ruleta para elegir un modificador:",
+        # 🔄 Nuevo selector: selectbox en vez de select_slider
+        selected_mid = st.selectbox(
+            "Elige un modificador de esta familia:",
             options=options,
             format_func=lambda mid: MODIFIERS[mid]["name"],
-            key=f"slider_{fam}",
+            key=f"selector_{fam}",
         )
 
         sel_mod = MODIFIERS[selected_mid]
 
+        # Card visual (usa la CSS de .modifier-card que ya tienes)
         st.markdown(
             f"""
             <div class="modifier-card">
@@ -1384,33 +1388,44 @@ if mode == "Explorador de Modificadores":
             unsafe_allow_html=True,
         )
 
-        # Costes como texto
+        # Costes legibles
+        cost_parts = []
         base_cost = sel_mod.get("base_cost")
-        rank_cost = sel_mod.get("rank_cost")
-        extra_long = sel_mod.get("extra_long_duration_cost")
-        per_instance = sel_mod.get("per_extra_instance_cost")
-
-        st.markdown("**Costes (modelo actual):**")
-        lines = []
         if base_cost is not None:
-            lines.append(f"- Coste base: {base_cost}")
+            cost_parts.append(f"- Coste base: **{base_cost}**")
+
+        rank_cost = sel_mod.get("rank_cost")
         if rank_cost is not None:
-            lines.append(f"- Coste por rango: {rank_cost}")
+            cost_parts.append(f"- Coste por rango: **+{rank_cost}**")
+
+        extra_long = sel_mod.get("extra_long_duration_cost")
         if extra_long is not None:
-            lines.append(f"- Coste extra por duración larga: {extra_long}")
-        if per_instance is not None:
-            lines.append(f"- Coste por instancia adicional: {per_instance}")
-        if not lines:
-            lines.append("- Sin costes específicos definidos.")
-        st.markdown("\n".join(lines))
+            cost_parts.append(f"- Extra por duración larga: **+{extra_long}**")
+
+        per_inst = sel_mod.get("per_extra_instance_cost")
+        if per_inst is not None:
+            cost_parts.append(f"- Coste por instancia adicional: **+{per_inst}**")
+
+        mod_total = sel_mod.get("cost_modifier_total")
+        if mod_total is not None:
+            cost_parts.append(f"- Modificador total al coste: **{mod_total:+}**")
+
+        st.markdown("**Coste (modelo actual):**")
+        if cost_parts:
+            st.markdown("\n".join(cost_parts))
+        else:
+            st.markdown("- Sin costes específicos definidos.")
 
         st.markdown("**Tags:** " + (", ".join(sel_mod.get("tags", [])) or "—"))
-
-
         st.markdown("---")
 
+    if total_mods == 0:
+        st.info("No se han encontrado modificadores con esos filtros.")
+    else:
+        st.caption(f"Mostrando {total_mods} modificadores en total.")
 
     st.stop()
+
 
 
 # ===================================================================
@@ -1582,7 +1597,7 @@ for col, nid in zip(cols, numen_multi_choice):
 
 
 # --- 3) Select Modifiers ---
-st.sidebar.header("3. Partículas / Modificadores")
+st.sidebar.header("3. Modificadores")
 
 families = ["FORMA", "ALCANCE_DURACION", "INTENCION", "INTENSIDAD"]
 selected_modifiers: List[ModifierSelection] = []
@@ -1649,6 +1664,39 @@ for fam in families:
                 extra_instances=extra,
             )
         )
+# --- Condicionales adicionales si la intención es Condicional ---
+has_conditional_intent = any(
+    sel.modifier_id == "INTENCION_CONDICIONAL" for sel in selected_modifiers
+)
+
+if has_conditional_intent:
+    cond_mods = {
+        mid: m
+        for mid, m in MODIFIERS.items()
+        if m.get("family") == "CONDICION"
+    }
+
+    if cond_mods:
+        st.sidebar.markdown("**Condiciones de activación**")
+        chosen_conds = st.sidebar.multiselect(
+            "Selecciona una o más condiciones:",
+            options=list(cond_mods.keys()),
+            format_func=lambda mid: cond_mods[mid]["name"],
+            key="ms_CONDICION",
+        )
+
+        for mid in chosen_conds:
+            # Evita duplicar si en el futuro las condiciones se seleccionan por otro lado
+            if any(sel.modifier_id == mid for sel in selected_modifiers):
+                continue
+
+            selected_modifiers.append(
+                ModifierSelection(
+                    modifier_id=mid,
+                    rank=1,
+                    extra_instances=0,
+                )
+            )
 
 
 long_duration = any(
@@ -1687,14 +1735,7 @@ mechanics_suggestion = suggest_mechanics(
 st.markdown("---")
 st.header("Sintaxis y Coste de la Ordenanza")
 
-precept_part = precept["verb"]
-numen_part = ", ".join(NUMEN[nid]["name"] for nid in numen_multi_choice)
-mods_part = ", ".join(
-    MODIFIERS[m.modifier_id]["name"] for m in selected_modifiers
-) or "—"
 
-syntax_str = f"{precept_part} + {numen_part} + [{mods_part}]"
-st.code(syntax_str, language="text")
 
 st.write(f"**Clave canónica:** `{canonical_key}`")
 st.write(f"**Complejidad total:** {complexity}")
