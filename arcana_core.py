@@ -735,10 +735,9 @@ def suggest_utility_effect(
 
 DB_PATH = os.environ.get( "ARCANA_DB_PATH", "ordinances_db.json")
 BACKUP_DIR = Path(os.environ.get("ARCANA_BACKUP_DIR", "grimoire_h"))
-HF_REPO_ID = "addraed/arcana-dataviz-hfspaces-streamlit-deploy"
-HF_TOKEN = os.environ.get("arcana-dataviz")  # Should already be set in HF Spaces
+
 GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN_ARCANA")  # Tu Personal Access Token de GitHub
-GITHUB_REPO = "addraed/Arcana-Dataviz"  # Tu repo de GitHub
+GITHUB_REPO = "Addraed/Arcana-Dataviz"  # Tu repo de GitHub
 GITHUB_BRANCH = "main"  # o "master" según tu repo
 
 # Ensure backup directory exists
