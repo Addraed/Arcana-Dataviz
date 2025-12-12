@@ -13,7 +13,9 @@ from arcana_core import (
     save_ordinances,
     find_by_canonical_key,
     next_ordinance_id,
-    suggest_mechanics,   
+    suggest_mechanics,
+    export_ordinances_json_bytes,
+    read_db_file_bytes
 )
 
 
@@ -1531,7 +1533,22 @@ if mode == "Grimorio de Ordenanzas":
         summary = mech.get("summary", "")
         render_animated_ordinance_card(o, effect_type, summary)
 
-
+    st.sidebar.markdown("---")
+    st.sidebar.subheader("Exportar")
+    
+    st.sidebar.download_button(
+        label="⬇️ Descargar grimorio (runtime)",
+        data=export_ordinances_json_bytes(ORDINANCES),
+        file_name="arcana_ordinances_export.json",
+        mime="application/json",
+    )
+    
+    st.sidebar.download_button(
+        label="⬇️ Descargar grimorio (archivo DB)",
+        data=read_db_file_bytes(),
+        file_name="ordinances_db.json",
+        mime="application/json",
+    )
 
 
 
