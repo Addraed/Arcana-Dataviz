@@ -1759,14 +1759,11 @@ st.write(mechanics_suggestion.get("summary", ""))
 # --- 5) DB lookup / save ---
 
 existing = find_by_canonical_key(ORDINANCES, canonical_key)
-
 if existing:
     st.success("Esta combinación ya existe en el grimorio.")
     st.subheader(existing.name)
-
 else:
     st.info("Esta combinación aún no está registrada. Puedes guardarla como nueva Ordenanza.")
-
     with st.form("new_ordinance_form"):
         name = st.text_input("Nombre de la Ordenanza", value="")
         effect_narrative = st.text_area(
@@ -1779,9 +1776,8 @@ else:
         )
         created_by = st.text_input("Creado por", value="Manu")
         source = st.text_input("Fuente (campaña/sesión)", value="")
-
         submitted = st.form_submit_button("Guardar Ordenanza")
-
+        
         if submitted:
             if not name.strip():
                 st.error("La Ordenanza necesita un nombre.")
@@ -1809,12 +1805,19 @@ else:
                     },
                 )
                 ORDINANCES[oid] = ord_obj
-                save_ordinances(ORDINANCES)
+                
+                # Guardar con auto-commit a HF repo
+                with st.spinner("💾 Guardando y sincronizando..."):
+                    save_ordinances(
+                        ORDINANCES,
+                        make_backup=False,      # No backup local (free tier)
+                        commit_to_repo=True     # Commit a HF repo
+                    )
+                
                 st.success(
-                    f"Ordenanza '{name}' guardada con id {oid}. "
+                    f"✓ Ordenanza '{name}' guardada con id {oid} y sincronizada al repositorio. "
                     "Revisa el Grimorio para consultarla."
                 )
-
-
+                st.balloons()  # ¡Celebración! 🎉
 
 
