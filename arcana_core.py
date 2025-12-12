@@ -737,6 +737,9 @@ DB_PATH = os.environ.get( "ARCANA_DB_PATH", "ordinances_db.json")
 BACKUP_DIR = Path(os.environ.get("ARCANA_BACKUP_DIR", "grimoire_h"))
 HF_REPO_ID = "addraed/arcana-dataviz-hfspaces-streamlit-deploy"
 HF_TOKEN = os.environ.get("arcana-dataviz")  # Should already be set in HF Spaces
+GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN_ARCANA")  # Tu Personal Access Token de GitHub
+GITHUB_REPO = "addraed/Arcana-Dataviz"  # Tu repo de GitHub
+GITHUB_BRANCH = "main"  # o "master" según tu repo
 
 # Ensure backup directory exists
 BACKUP_DIR.mkdir(parents=True, exist_ok=True)
@@ -772,14 +775,13 @@ def save_ordinances(
     commit_to_repo: bool = True
 ) -> None:
     """
-    Save ordinances locally and optionally commit to HF repo.
+    Save ordinances locally and optionally commit to GitHub repo.
     """
     print(f"🔍 save_ordinances called with {len(ordinances)} ordinances")
-    print(f"   make_backup={make_backup}, commit_to_repo={commit_to_repo}")
     
     raw: Dict[str, Any] = {oid: asdict(ord_obj) for oid, ord_obj in ordinances.items()}
     
-    # Write main DB locally
+    # Write main DB locally (ephemeral)
     print(f"💾 Saving to local DB_PATH: {DB_PATH}")
     try:
         with open(DB_PATH, "w", encoding="utf-8") as f:
@@ -787,9 +789,8 @@ def save_ordinances(
         print(f"✓ Local save successful")
     except Exception as e:
         print(f"✗ Local save failed: {e}")
-        traceback.print_exc()
     
-    # Write timestamped backup
+    # Write timestamped backup (optional)
     if make_backup:
         try:
             backup_path = _write_backup_snapshot(raw)
@@ -797,21 +798,20 @@ def save_ordinances(
         except Exception as e:
             print(f"⚠️  Backup failed: {e}")
     
-    # Commit to HF repo
+    # Commit to GitHub repo
     if commit_to_repo:
-        print(f"🚀 Attempting to commit to HF repo...")
-        print(f"   HF_TOKEN present: {bool(HF_TOKEN)}")
-        print(f"   Repo ID: {HF_REPO_ID}")
+        print(f"🚀 Attempting to commit to GitHub repo...")
         
-        if not HF_TOKEN:
-            print("✗ HF_TOKEN not found - skipping repo commit")
+        if not GITHUB_TOKEN:
+            print("✗ GITHUB_TOKEN not found - skipping repo commit")
             return
         
         try:
-            _commit_to_hf_repo(raw)
-            print("✓ Commit to HF repo successful!")
+            _commit_to_github_repo(raw)
+            print("✓ Commit to GitHub successful!")
         except Exception as e:
-            print(f"✗ Commit to HF repo failed: {e}")
+            print(f"✗ Commit to GitHub failed: {e}")
+            import traceback
             traceback.print_exc()
 
 
@@ -846,25 +846,60 @@ def _write_backup_snapshot(raw: Dict[str, Any]) -> Path:
         json.dump(raw, f, ensure_ascii=False, indent=2)
     return backup_path
 
-def _commit_to_hf_repo(raw: Dict[str, Any]) -> None:
-    """Commit current ordinances to HF Space repository"""
-    print("   Initializing HfApi...")
-    api = HfApi()
+def _commit_to_github_repo(raw: Dict[str, Any]) -> None:
+    """Commit current ordinances to GitHub repository using GitHub API"""
     
-    print("   Converting to JSON bytes...")
-    json_bytes = json.dumps(raw, ensure_ascii=False, indent=2).encode("utf-8")
-    print(f"   JSON size: {len(json_bytes)} bytes")
+    file_path = "ordinances_db.json"
     
-    print("   Uploading to HF repo...")
-    result = api.upload_file(
-        path_or_fileobj=json_bytes,
-        path_in_repo="ordinances_db.json",
-        repo_id=HF_REPO_ID,
-        repo_type="space",
-        token=HF_TOKEN,
-        commit_message=f"💾 Auto-save ordinances [{datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}]"
-    )
-    print(f"   Upload result: {result}")
+    # Convert to JSON
+    json_content = json.dumps(raw, ensure_ascii=False, indent=2)
+    
+    # Encode to base64 (GitHub API requirement)
+    content_base64 = base64.b64encode(json_content.encode('utf-8')).decode('utf-8')
+    
+    # GitHub API endpoint
+    url = f"https://api.github.com/repos/{GITHUB_REPO}/contents/{file_path}"
+    
+    headers = {
+        "Authorization": f"token {GITHUB_TOKEN}",
+        "Accept": "application/vnd.github.v3+json"
+    }
+    
+    # Get current file SHA (needed to update existing file)
+    print(f"   Checking if file exists...")
+    response = requests.get(url, headers=headers)
+    
+    sha = None
+    if response.status_code == 200:
+        sha = response.json()["sha"]
+        print(f"   File exists, SHA: {sha[:7]}...")
+    else:
+        print(f"   File doesn't exist, will create new")
+    
+    # Prepare commit data
+    commit_message = f"💾 Auto-save ordinances from HF Space [{datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}]"
+    
+    data = {
+        "message": commit_message,
+        "content": content_base64,
+        "branch": GITHUB_BRANCH
+    }
+    
+    if sha:
+        data["sha"] = sha  # Required to update existing file
+    
+    # Commit to GitHub
+    print(f"   Committing to GitHub...")
+    response = requests.put(url, headers=headers, json=data)
+    
+    if response.status_code in [200, 201]:
+        print(f"   ✓ Successfully committed to GitHub!")
+        result = response.json()
+        print(f"   Commit URL: {result['commit']['html_url']}")
+    else:
+        print(f"   ✗ GitHub API error: {response.status_code}")
+        print(f"   Response: {response.text}")
+        raise Exception(f"GitHub commit failed: {response.status_code} - {response.text}")
 
 def export_ordinances_json_bytes(ordinances: Dict[str, Ordinance]) -> bytes:
     """Export ordinances as JSON bytes"""
