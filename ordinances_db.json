@@ -295,5 +295,49 @@
       "created_by": "Aida",
       "source": "Sixtrangers"
     }
+  },
+  "ORD_000009": {
+    "id": "ORD_000009",
+    "canonical_key": "APLASTAR|MORTIS|[DURACION_INSTANTANEO,FORMA_AURA,INTENCION_OFENSIVO,INTENSIDAD_EFICIENCIA]",
+    "name": "Smash",
+    "precept_id": "APLASTAR",
+    "numen_ids": [
+      "MORTIS"
+    ],
+    "modifiers": [
+      {
+        "modifier_id": "FORMA_AURA",
+        "rank": 1,
+        "extra_instances": 0
+      },
+      {
+        "modifier_id": "DURACION_INSTANTANEO",
+        "rank": 1,
+        "extra_instances": 0
+      },
+      {
+        "modifier_id": "INTENCION_OFENSIVO",
+        "rank": 1,
+        "extra_instances": 0
+      },
+      {
+        "modifier_id": "INTENSIDAD_EFICIENCIA",
+        "rank": 1,
+        "extra_instances": 0
+      }
+    ],
+    "mechanical": {
+      "narrative": "Te envuelves de un aura de constricción que aplasta toda la vida.",
+      "notes": "Daño sugerida: 2d10 (Mortis), 1 instancia(s), Aura alrededor del regidor de ~3 m. — Instantáneo o unos segundos."
+    },
+    "cost": {
+      "complexity_points": 3,
+      "tier": 2
+    },
+    "tier": 2,
+    "meta": {
+      "created_by": "Pauli Vultus Mortis",
+      "source": "Sixtrangers"
+    }
   }
 }
